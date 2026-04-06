@@ -1,0 +1,134 @@
+import 'dotenv/config';
+import fs from 'node:fs';
+import { spawn } from 'node:child_process';
+import EmbeddedPostgres from 'embedded-postgres';
+import postgres from 'postgres';
+import {
+  buildEmbeddedPostgresUrl,
+  resolveEmbeddedPostgresConfig
+} from '../src/infrastructure/db/runtime-defaults';
+import { findAvailablePort, rewriteLocalAppUrls } from '../src/infrastructure/runtime/port-resolution';
+
+function quoteIdentifier(value: string) {
+  return `"${String(value).replace(/"/g, '""')}"`;
+}
+
+async function ensureDatabase(sql: postgres.Sql, databaseName: string) {
+  const existing = await sql<{ exists: boolean }[]>`
+    SELECT EXISTS(SELECT 1 FROM pg_database WHERE datname = ${databaseName}) AS exists
+  `;
+
+  if (!existing[0]?.exists) {
+    await sql.unsafe(`CREATE DATABASE ${quoteIdentifier(databaseName)}`);
+  }
+}
+
+async function startEmbeddedPostgres() {
+  const config = resolveEmbeddedPostgresConfig();
+  const preferredPort = config.port;
+  config.port = await findAvailablePort(config.port, config.host);
+  if (config.port !== preferredPort) {
+    console.warn(
+      `[dev] Embedded Postgres port ${preferredPort} is busy, using ${config.port}`
+    );
+  }
+
+  const url = buildEmbeddedPostgresUrl(config);
+  const instance = new EmbeddedPostgres({
+    databaseDir: config.dataDir,
+    user: config.user,
+    password: config.password,
+    port: config.port,
+    persistent: true,
+    createPostgresUser: config.createUser,
+    postgresFlags: ['-c', `listen_addresses=${config.host}`]
+  });
+
+  const versionFile = `${config.dataDir}/PG_VERSION`;
+  if (!fs.existsSync(versionFile)) {
+    try {
+      await instance.initialise();
+    } catch (error) {
+      if (!fs.existsSync(versionFile)) {
+        throw error;
+      }
+    }
+  }
+
+  await instance.start();
+
+  const adminUrl = new URL(url);
+  adminUrl.pathname = '/postgres';
+  const sql = postgres(adminUrl.toString(), { max: 1 });
+  try {
+    await ensureDatabase(sql, config.database);
+  } finally {
+    await sql.end({ timeout: 1 });
+  }
+
+  return {
+    instance,
+    databaseUrl: url
+  };
+}
+
+async function spawnCommand(command: string, args: string[], env: NodeJS.ProcessEnv) {
+  const child = spawn(command, args, {
+    stdio: 'inherit',
+    env
+  });
+
+  return await new Promise<{ code: number | null; signal: NodeJS.Signals | null }>((resolve) => {
+    child.on('exit', (code, signal) => resolve({ code, signal }));
+  });
+}
+
+async function main() {
+  const command = process.argv[2];
+  const args = process.argv.slice(3);
+
+  if (!command) {
+    throw new Error('with-default-postgres requires a command to execute.');
+  }
+
+  let childEnv = { ...process.env };
+
+  if (command === 'next' && args[0] === 'dev') {
+    const preferredPort = Number.parseInt(process.env.PORT || '3000', 10);
+    const resolvedPort = await findAvailablePort(preferredPort);
+    childEnv.PORT = String(resolvedPort);
+    childEnv = rewriteLocalAppUrls(childEnv, preferredPort, resolvedPort);
+    if (resolvedPort !== preferredPort) {
+      console.warn(`[dev] App port ${preferredPort} is busy, using ${resolvedPort}`);
+    }
+  }
+
+  if (process.env.DATABASE_URL) {
+    const result = await spawnCommand(command, args, childEnv);
+    if (result.signal) {
+      process.kill(process.pid, result.signal);
+      return;
+    }
+    process.exit(result.code ?? 0);
+  }
+
+  const { instance, databaseUrl } = await startEmbeddedPostgres();
+  try {
+    const result = await spawnCommand(command, args, {
+      ...childEnv,
+      DATABASE_URL: databaseUrl
+    });
+    if (result.signal) {
+      process.kill(process.pid, result.signal);
+      return;
+    }
+    process.exit(result.code ?? 0);
+  } finally {
+    await instance.stop().catch(() => undefined);
+  }
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

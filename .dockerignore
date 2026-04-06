@@ -1,0 +1,11 @@
+node_modules
+.next
+.tmp
+data
+.env
+.DS_Store
+tasks
+docs
+dist
+archive
+**/archive
