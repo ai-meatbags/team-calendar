@@ -13,6 +13,44 @@ function quoteIdentifier(value: string) {
   return `"${String(value).replace(/"/g, '""')}"`;
 }
 
+const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '::1']);
+
+function resolveLocalUrlPort(rawValue: string | undefined) {
+  if (!rawValue) {
+    return null;
+  }
+
+  try {
+    const url = new URL(rawValue.trim());
+    if (!LOCAL_HOSTS.has(url.hostname) || !url.port) {
+      return null;
+    }
+
+    const port = Number.parseInt(url.port, 10);
+    return Number.isInteger(port) && port > 0 ? port : null;
+  } catch {
+    return null;
+  }
+}
+
+function resolvePreferredAppPort(env: NodeJS.ProcessEnv) {
+  const appBaseUrls = env.APP_BASE_URL?.split(',').map((value) => value.trim()) ?? [];
+  const candidates = [
+    env.NEXTAUTH_URL,
+    env.GOOGLE_REDIRECT_URI,
+    ...appBaseUrls
+  ];
+
+  for (const candidate of candidates) {
+    const resolvedPort = resolveLocalUrlPort(candidate);
+    if (resolvedPort) {
+      return resolvedPort;
+    }
+  }
+
+  return Number.parseInt(env.PORT || '3000', 10);
+}
+
 async function ensureDatabase(sql: postgres.Sql, databaseName: string) {
   const existing = await sql<{ exists: boolean }[]>`
     SELECT EXISTS(SELECT 1 FROM pg_database WHERE datname = ${databaseName}) AS exists
@@ -107,6 +145,13 @@ async function main() {
 
   if (nextSubcommand === 'build' || nextSubcommand === 'start') {
     childEnv.NODE_ENV = 'production';
+  }
+
+  if (nextSubcommand === 'start') {
+    const targetPort = Number.parseInt(process.env.PORT || '3000', 10);
+    const preferredPort = resolvePreferredAppPort(childEnv);
+    childEnv.PORT = String(targetPort);
+    childEnv = rewriteLocalAppUrls(childEnv, preferredPort, targetPort);
   }
 
   if (process.env.DATABASE_URL) {

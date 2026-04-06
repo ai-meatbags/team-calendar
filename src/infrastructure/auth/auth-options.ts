@@ -20,6 +20,7 @@ function createAuthConfig(): NextAuthConfig {
 
   return {
     adapter: createEncryptedDrizzleAdapter(runtime.dbClient.db, authSchema, runtime.tokenVault),
+    trustHost: true,
     session: {
       strategy: 'database'
     },
