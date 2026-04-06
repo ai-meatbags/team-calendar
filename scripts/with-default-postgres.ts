@@ -92,15 +92,21 @@ async function main() {
   }
 
   let childEnv = { ...process.env };
+  const nextSubcommand = command === 'next' ? args[0] : null;
 
-  if (command === 'next' && args[0] === 'dev') {
+  if (nextSubcommand === 'dev') {
     const preferredPort = Number.parseInt(process.env.PORT || '3000', 10);
     const resolvedPort = await findAvailablePort(preferredPort);
     childEnv.PORT = String(resolvedPort);
+    childEnv.NODE_ENV = 'development';
     childEnv = rewriteLocalAppUrls(childEnv, preferredPort, resolvedPort);
     if (resolvedPort !== preferredPort) {
       console.warn(`[dev] App port ${preferredPort} is busy, using ${resolvedPort}`);
     }
+  }
+
+  if (nextSubcommand === 'build' || nextSubcommand === 'start') {
+    childEnv.NODE_ENV = 'production';
   }
 
   if (process.env.DATABASE_URL) {

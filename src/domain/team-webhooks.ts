@@ -35,10 +35,10 @@ function isLoopbackOrPrivateIpv4(hostname: string) {
     if (range.first !== first) {
       return false;
     }
-    if (range.second !== undefined && range.second !== null) {
+    if ('second' in range && range.second !== null) {
       return range.second === second;
     }
-    if (range.secondMin !== undefined && range.secondMax !== undefined) {
+    if ('secondMin' in range && 'secondMax' in range) {
       return second >= range.secondMin && second <= range.secondMax;
     }
     return true;
