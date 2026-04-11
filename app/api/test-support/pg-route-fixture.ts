@@ -31,6 +31,26 @@ const SCHEMA_SQL = `
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   );
+  CREATE TABLE IF NOT EXISTS user_slot_rule_settings (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    days INTEGER NOT NULL,
+    workday_start_hour INTEGER NOT NULL,
+    workday_end_hour INTEGER NOT NULL,
+    min_notice_hours INTEGER NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS team_member_slot_rule_overrides (
+    id TEXT PRIMARY KEY,
+    team_member_id TEXT NOT NULL,
+    days INTEGER NOT NULL,
+    workday_start_hour INTEGER NOT NULL,
+    workday_end_hour INTEGER NOT NULL,
+    min_notice_hours INTEGER NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
   CREATE TABLE IF NOT EXISTS team_webhook_subscriptions (
     id TEXT PRIMARY KEY,
     team_id_raw TEXT NOT NULL,
@@ -43,7 +63,10 @@ const SCHEMA_SQL = `
     updated_at TEXT NOT NULL,
     last_delivery_status TEXT NOT NULL,
     last_delivery_at TEXT,
-    last_error TEXT
+    last_error TEXT,
+    jwt_secret_encrypted TEXT NOT NULL,
+    jwt_audience TEXT NOT NULL,
+    secret_last_rotated_at TEXT
   );
   CREATE TABLE IF NOT EXISTS accounts (
     user_id TEXT NOT NULL,
@@ -56,7 +79,10 @@ const SCHEMA_SQL = `
     token_type TEXT,
     scope TEXT,
     id_token TEXT,
-    session_state TEXT
+    session_state TEXT,
+    auth_status TEXT NOT NULL DEFAULT 'active',
+    auth_status_updated_at TEXT,
+    auth_status_reason TEXT
   );
   CREATE TABLE IF NOT EXISTS sessions (
     session_token TEXT PRIMARY KEY,
@@ -82,6 +108,10 @@ const SCHEMA_SQL = `
   ON rate_limit_counters (key, window_start_ms);
   CREATE UNIQUE INDEX IF NOT EXISTS team_webhook_subscription_target_uq
   ON team_webhook_subscriptions (team_id_raw, event_type, target_url);
+  CREATE UNIQUE INDEX IF NOT EXISTS user_slot_rule_settings_user_uq
+  ON user_slot_rule_settings (user_id);
+  CREATE UNIQUE INDEX IF NOT EXISTS team_member_slot_rule_overrides_member_uq
+  ON team_member_slot_rule_overrides (team_member_id);
 `;
 
 type QueryCompat = {

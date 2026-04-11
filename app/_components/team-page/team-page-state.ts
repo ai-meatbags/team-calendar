@@ -1,12 +1,16 @@
 import {
   applyTeamPageSelectionPatch,
   buildTeamPageSelectionPatch,
-  hasTeamPageSelectionChanges,
-  normalizeTeamPrivacy,
-  type CalendarSelectionItem,
-  type TeamMember,
-  type TeamWebhookItem
-} from './team-page-utils';
+  hasTeamPageSelectionChanges
+} from './team-page-query-state';
+import { normalizeTeamPrivacy } from './team-page-members';
+import type {
+  CalendarSelectionItem,
+  TeamMember,
+  TeamWebhookDraftState,
+  TeamWebhookProvisioning,
+  TeamWebhookItem
+} from './team-page-types';
 
 export type ApiFetch = (path: string, options?: RequestInit) => Promise<unknown>;
 
@@ -196,27 +200,45 @@ export function applySavedTeamSettingsState(params: {
 
 export function resolveTeamWebhookCreateSubmission(params: {
   targetUrl: string;
+  provisioningToken?: string | null;
 }) {
   const targetUrl = String(params.targetUrl || '').trim();
   if (!targetUrl) {
     return { ok: false as const, message: 'Укажи URL вебхука' };
   }
 
+  const provisioningToken = String(params.provisioningToken || '').trim();
+  if (!provisioningToken) {
+    return { ok: false as const, message: 'Сначала сгенерируйте секрет' };
+  }
+
   return {
     ok: true as const,
     payload: {
-      targetUrl
+      targetUrl,
+      provisioningToken
     }
   };
+}
+
+export async function executeTeamWebhookPrepareAction(params: {
+  shareId: string;
+  apiFetch: ApiFetch;
+}) {
+  return (await params.apiFetch(`/api/teams/${params.shareId}/integrations/webhooks/prepare`, {
+    method: 'POST'
+  })) as { provisioning?: TeamWebhookDraftState };
 }
 
 export async function executeTeamWebhookCreateAction(params: {
   shareId: string;
   targetUrl: string;
+  provisioningToken?: string | null;
   apiFetch: ApiFetch;
 }) {
   const submission = resolveTeamWebhookCreateSubmission({
-    targetUrl: params.targetUrl
+    targetUrl: params.targetUrl,
+    provisioningToken: params.provisioningToken
   });
   if (!submission.ok) {
     throw new Error(submission.message);
@@ -254,4 +276,17 @@ export async function executeTeamWebhookDeleteAction(params: {
       method: 'DELETE'
     }
   )) as { deleted?: boolean };
+}
+
+export async function executeTeamWebhookRotateAction(params: {
+  shareId: string;
+  webhookId: string;
+  apiFetch: ApiFetch;
+}) {
+  return (await params.apiFetch(
+    `/api/teams/${params.shareId}/integrations/webhooks/${params.webhookId}/rotate`,
+    {
+      method: 'POST'
+    }
+  )) as { webhook?: TeamWebhookItem; provisioning?: TeamWebhookProvisioning };
 }

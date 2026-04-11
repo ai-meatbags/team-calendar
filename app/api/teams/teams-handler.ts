@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { createDbClient } from '@/infrastructure/db/client';
 import type { isSameOriginRequest } from '@/interface/http/request';
+import { toAvatarProxyUrl } from '@/interface/http/avatar-proxy';
 import { errorResponse, forbidden, unauthorized } from '@/interface/http/responses';
-import { createTeam, listTeamsForUser } from '@/application/usecases/team-page';
+import { createTeam } from '@/application/usecases/team-page';
+import { listTeamsForUser } from '@/application/usecases/team-list';
 
 type TeamsRouteDeps = {
   auth: () => Promise<any>;
@@ -23,7 +25,15 @@ export function createTeamsGetHandler(deps: TeamsRouteDeps) {
       }
 
       const payload = await listTeamsForUser(deps.createDbClient, { userId });
-      return NextResponse.json(payload);
+      return NextResponse.json({
+        teams: payload.teams.map((team: (typeof payload.teams)[number]) => ({
+          ...team,
+          members: team.members.map((member: (typeof team.members)[number]) => ({
+            ...member,
+            picture: toAvatarProxyUrl(member.picture)
+          }))
+        }))
+      });
     } catch (error) {
       return errorResponse(error, 'Failed to load teams.');
     }

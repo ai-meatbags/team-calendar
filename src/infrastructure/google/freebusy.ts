@@ -1,4 +1,8 @@
 import { google } from 'googleapis';
+import {
+  normalizeGoogleApiError,
+  normalizeGoogleCalendarEntryErrors
+} from '@/infrastructure/auth/google-auth-errors';
 
 export async function fetchBusyIntervals(params: {
   refreshToken: string;
@@ -18,14 +22,19 @@ export async function fetchBusyIntervals(params: {
   oauth2Client.setCredentials({ refresh_token: params.refreshToken });
 
   const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
-  const response = await calendar.freebusy.query({
-    requestBody: {
-      timeMin: params.timeMin.toISOString(),
-      timeMax: params.timeMax.toISOString(),
-      timeZone: params.timeZone,
-      items: params.calendarIds.map((id) => ({ id }))
-    }
-  });
+  let response;
+  try {
+    response = await calendar.freebusy.query({
+      requestBody: {
+        timeMin: params.timeMin.toISOString(),
+        timeMax: params.timeMax.toISOString(),
+        timeZone: params.timeZone,
+        items: params.calendarIds.map((id) => ({ id }))
+      }
+    });
+  } catch (error) {
+    throw normalizeGoogleApiError(error);
+  }
 
   const calendars = response.data.calendars || {};
   const busy: Array<{ start: string; end: string }> = [];
@@ -36,7 +45,7 @@ export async function fetchBusyIntervals(params: {
       continue;
     }
     if (Array.isArray(calendarInfo.errors) && calendarInfo.errors.length) {
-      throw new Error(`Freebusy error for calendar ${calendarId}`);
+      throw normalizeGoogleCalendarEntryErrors(calendarInfo.errors);
     }
     for (const interval of calendarInfo.busy || []) {
       if (interval?.start && interval?.end) {

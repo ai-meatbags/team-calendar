@@ -6,7 +6,13 @@ import {
   requireMemberPublicId,
   resolveAvailabilityMemberFilter
 } from '@/domain/validation/member-filter';
-import { createAppError, isAppError } from '@/application/errors';
+import {
+  createAppError,
+  isAppError,
+  isGoogleReauthRequiredError,
+  isGoogleTransientFailureError
+} from '@/application/errors';
+import { getTeamSlotRuleAggregateForMemberPublicIds } from '@/application/usecases/slot-rules-settings';
 import { listActiveCalendarIdsOrPrimary } from '@/domain/calendar-selection/selection';
 import { computeAvailabilitySlotsByMembers } from '@/domain/availability/compute';
 import type { createDbClient } from '@/infrastructure/db/client';
@@ -18,10 +24,6 @@ import { toAvatarProxyUrl } from '@/interface/http/avatar-proxy';
 import type { TokenVaultPort } from '@/ports/security';
 
 const TIME_ZONE = 'Europe/Moscow';
-const WORKDAY_START_HOUR = 10;
-const WORKDAY_END_HOUR = 20;
-const MIN_BOOKING_NOTICE_HOURS = 12;
-const DAYS = 14;
 
 export type AvailabilityRouteDeps = {
   createDbClient: typeof createDbClient;
@@ -117,10 +119,17 @@ export function createAvailabilityGetHandler(deps: AvailabilityRouteDeps) {
       const selectedMembers = selected.selectedMemberPublicId
         ? allMembers.filter((member) => member.memberPublicId === selected.selectedMemberPublicId)
         : allMembers;
+      const slotRuleSummary = await getTeamSlotRuleAggregateForMemberPublicIds(
+        shareId,
+        selectedMembers.map((member) => member.memberPublicId),
+        {
+          createDbClient: deps.createDbClient
+        }
+      );
 
       const now = new Date();
-      const timeMin = new Date(now.getTime() + MIN_BOOKING_NOTICE_HOURS * 60 * 60 * 1000);
-      const timeMax = new Date(now.getTime() + DAYS * 24 * 60 * 60 * 1000);
+      const timeMin = new Date(now.getTime() + slotRuleSummary.minNoticeHours * 60 * 60 * 1000);
+      const timeMax = new Date(now.getTime() + slotRuleSummary.days * 24 * 60 * 60 * 1000);
 
       const busyIntervalsByMember = await Promise.all(
         selectedMembers.map(async (entry) => {
@@ -176,8 +185,8 @@ export function createAvailabilityGetHandler(deps: AvailabilityRouteDeps) {
         slotMinutes: slotMinutes as 30 | 60,
         options: {
           timeZone: TIME_ZONE,
-          workdayStartHour: WORKDAY_START_HOUR,
-          workdayEndHour: WORKDAY_END_HOUR
+          workdayStartHour: slotRuleSummary.workdayStartHour,
+          workdayEndHour: slotRuleSummary.workdayEndHour
         }
       });
 
@@ -186,10 +195,10 @@ export function createAvailabilityGetHandler(deps: AvailabilityRouteDeps) {
         timeMax: timeMax.toISOString(),
         timeZone: TIME_ZONE,
         slotMinutes,
-        days: DAYS,
-        workdayStartHour: WORKDAY_START_HOUR,
-        workdayEndHour: WORKDAY_END_HOUR,
-        minNoticeHours: MIN_BOOKING_NOTICE_HOURS,
+        days: slotRuleSummary.days,
+        workdayStartHour: slotRuleSummary.workdayStartHour,
+        workdayEndHour: slotRuleSummary.workdayEndHour,
+        minNoticeHours: slotRuleSummary.minNoticeHours,
         selectedMemberFilter: selected.selectedMemberPublicId,
         slots
       });
@@ -216,6 +225,26 @@ export function createAvailabilityGetHandler(deps: AvailabilityRouteDeps) {
 
       if (isAppError(error)) {
         return NextResponse.json({ error: error.message }, { status: error.status });
+      }
+
+      if (isGoogleReauthRequiredError(error)) {
+        return NextResponse.json(
+          {
+            error: 'Calendar access must be confirmed for one of the team members.',
+            code: 'team_calendar_access_lost'
+          },
+          { status: 409 }
+        );
+      }
+
+      if (isGoogleTransientFailureError(error)) {
+        return NextResponse.json(
+          {
+            error: 'Google Calendar is temporarily unavailable for one of the team members.',
+            code: 'team_calendar_unavailable'
+          },
+          { status: 503 }
+        );
       }
 
       return NextResponse.json({ error: 'Failed to load availability.' }, { status: 500 });

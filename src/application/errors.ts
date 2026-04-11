@@ -50,3 +50,70 @@ export function notFoundError(message: string, code = 'not_found') {
 export function internalError(message: string, code = 'internal_error') {
   return createAppError(500, message, code);
 }
+
+export type GoogleAuthRecoveryReason =
+  | 'missing_refresh_token'
+  | 'oauth_revoked'
+  | 'scope_lost';
+
+export class GoogleReauthRequiredError extends Error {
+  code: string;
+  reason: GoogleAuthRecoveryReason;
+
+  constructor(reason: GoogleAuthRecoveryReason) {
+    super('Google Calendar access must be confirmed again.');
+    this.name = 'GoogleReauthRequiredError';
+    this.code = 'google_reauth_required';
+    this.reason = reason;
+  }
+}
+
+export class GoogleTransientFailureError extends Error {
+  code: string;
+
+  constructor() {
+    super('Google Calendar is temporarily unavailable.');
+    this.name = 'GoogleTransientFailureError';
+    this.code = 'google_transient_failure';
+  }
+}
+
+export class CurrentUserRecoveryRequiredAppError extends AppError {
+  reason: GoogleAuthRecoveryReason;
+
+  constructor(reason: GoogleAuthRecoveryReason) {
+    super({
+      status: 401,
+      code: 'reauth_required',
+      message: 'Need to confirm Google Calendar access again.'
+    });
+    this.name = 'CurrentUserRecoveryRequiredAppError';
+    this.reason = reason;
+  }
+}
+
+export function googleReauthRequiredError(reason: GoogleAuthRecoveryReason) {
+  return new GoogleReauthRequiredError(reason);
+}
+
+export function googleTransientFailureError() {
+  return new GoogleTransientFailureError();
+}
+
+export function currentUserRecoveryRequiredError(reason: GoogleAuthRecoveryReason) {
+  return new CurrentUserRecoveryRequiredAppError(reason);
+}
+
+export function isGoogleReauthRequiredError(error: unknown): error is GoogleReauthRequiredError {
+  return error instanceof GoogleReauthRequiredError;
+}
+
+export function isGoogleTransientFailureError(error: unknown): error is GoogleTransientFailureError {
+  return error instanceof GoogleTransientFailureError;
+}
+
+export function isCurrentUserRecoveryRequiredAppError(
+  error: unknown
+): error is CurrentUserRecoveryRequiredAppError {
+  return error instanceof CurrentUserRecoveryRequiredAppError;
+}

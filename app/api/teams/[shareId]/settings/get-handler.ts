@@ -3,9 +3,11 @@ import type { AppEnv } from '@/composition/env';
 import type { createDbClient } from '@/infrastructure/db/client';
 import type { fetchCalendarList } from '@/infrastructure/google/calendar-list';
 import type { isSameOriginRequest } from '@/interface/http/request';
+import { toAvatarProxyUrl } from '@/interface/http/avatar-proxy';
 import { errorResponse, forbidden, unauthorized } from '@/interface/http/responses';
 import type { TokenVaultPort } from '@/ports/security';
 import { getTeamSettings } from '@/application/usecases/team-page';
+import { getTeamSlotRuleSettings } from '@/application/usecases/slot-rules-settings';
 
 type TeamSettingsConfig = Pick<AppEnv, 'GOOGLE_CLIENT_ID' | 'GOOGLE_CLIENT_SECRET'>;
 
@@ -38,7 +40,7 @@ export function createTeamSettingsGetHandler(deps: TeamSettingsRouteDeps) {
       const tokenVault = deps.getTokenVault();
       const { shareId } = await context.params;
 
-      const payload = await getTeamSettings(
+      const teamSettings = await getTeamSettings(
         {
           createDbClient: deps.createDbClient,
           decryptRefreshToken: tokenVault.decrypt,
@@ -48,8 +50,20 @@ export function createTeamSettingsGetHandler(deps: TeamSettingsRouteDeps) {
         },
         { shareId, userId }
       );
+      const slotRuleSettings = await getTeamSlotRuleSettings(shareId, userId, {
+        createDbClient: deps.createDbClient
+      });
 
-      return Response.json(payload);
+      return Response.json({
+        ...teamSettings,
+        ...slotRuleSettings,
+        owner: slotRuleSettings.owner
+          ? {
+              ...slotRuleSettings.owner,
+              picture: toAvatarProxyUrl(slotRuleSettings.owner.picture)
+            }
+          : null
+      });
     } catch (error) {
       return errorResponse(error, 'Failed to load team settings.');
     }

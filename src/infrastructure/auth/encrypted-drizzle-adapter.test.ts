@@ -65,6 +65,48 @@ test('createUser adds createdAt and updatedAt for auth schema', async () => {
   assert.equal((result as any).createdAt, createdUsers[0].createdAt);
 });
 
+test('createUser provisions slot rule defaults row when slot rules table is available', async () => {
+  const insertedRows: any[] = [];
+  const baseAdapter: Adapter = {
+    async createUser(user) {
+      return {
+        ...user,
+        id: 'user-1'
+      } as any;
+    }
+  };
+  const dbMock = {
+    insert() {
+      return {
+        values(value: unknown) {
+          insertedRows.push(value);
+          return Promise.resolve();
+        }
+      };
+    }
+  };
+  const adapter = createEncryptedDrizzleAdapter(
+    dbMock,
+    {
+      userSlotRuleSettings: {}
+    },
+    createTokenVaultMock(),
+    () => baseAdapter
+  );
+
+  await adapter.createUser?.({
+    email: 'user@example.com',
+    name: 'User'
+  } as any);
+
+  assert.equal(insertedRows.length, 1);
+  assert.equal(insertedRows[0].userId, 'user-1');
+  assert.equal(insertedRows[0].days, 14);
+  assert.equal(insertedRows[0].workdayStartHour, 10);
+  assert.equal(insertedRows[0].workdayEndHour, 20);
+  assert.equal(insertedRows[0].minNoticeHours, 12);
+});
+
 test('updateUser refreshes updatedAt for auth schema', async () => {
   const updatedUsers: any[] = [];
   const baseAdapter: Adapter = {
@@ -199,6 +241,9 @@ test('linkAccount maps Auth.js snake_case account fields to schema camelCase fie
     tokenType: 'Bearer',
     scope: 'openid email profile',
     idToken: 'plain-id-token',
-    sessionState: 'state-1'
+    sessionState: 'state-1',
+    authStatus: 'active',
+    authStatusUpdatedAt: undefined,
+    authStatusReason: undefined
   });
 });

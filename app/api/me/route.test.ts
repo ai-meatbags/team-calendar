@@ -2,9 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { NextRequest } from 'next/server';
 import { createDbClient } from '@/infrastructure/db/client';
+import { GOOGLE_AUTH_RECOVERY_COOKIE_NAME } from '@/infrastructure/auth/google-auth-flow';
+import { googleReauthRequiredError, googleTransientFailureError } from '@/application/errors';
 import { createPgRouteFixture, type PgTestDatabase } from '../test-support/pg-route-fixture';
 import { createMeGetHandler, createMePatchHandler } from './get-handler';
-import { createMeSettingsGetHandler } from './settings/get-handler';
+import { createMeSettingsGetHandler, createMeSettingsPatchHandler } from './settings/get-handler';
 import { createMeCalendarPatchHandler } from './calendar/patch-handler';
 
 async function insertMeSeedData(db: PgTestDatabase) {
@@ -27,6 +29,14 @@ async function insertMeSeedData(db: PgTestDatabase) {
       'INSERT INTO accounts (user_id, type, provider, provider_account_id, refresh_token) VALUES (?, ?, ?, ?, ?)'
     )
     .run('user-1', 'oauth', 'google', 'google-user-1', 'enc-refresh-token');
+  await db
+    .prepare(
+      'INSERT INTO user_slot_rule_settings (id, user_id, days, workday_start_hour, workday_end_hour, min_notice_hours, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+    )
+    .run('slot-rules-1', 'user-1', 14, 10, 20, 12, nowIso, nowIso);
+  await db
+    .prepare('INSERT INTO sessions (session_token, user_id, expires) VALUES (?, ?, ?)')
+    .run('sess-1', 'user-1', new Date(Date.now() + 60_000).toISOString());
 }
 
 function createMeRouteDeps(overrides: Record<string, unknown> = {}) {
@@ -132,12 +142,67 @@ test('GET /api/me/settings returns merged selection with titles', async () => {
       title: 'Primary',
       active: true
     });
+    assert.deepEqual(payload.slotRuleDefaults, {
+      days: 14,
+      workdayStartHour: 10,
+      workdayEndHour: 20,
+      minNoticeHours: 12
+    });
   } finally {
     await fixture.cleanup();
   }
 });
 
-test('GET /api/me/settings returns 400 when calendar credentials are missing', async () => {
+test('PATCH /api/me/settings updates slot rule defaults', async () => {
+  const fixture = await createPgRouteFixture('teamcal-me-route');
+  await insertMeSeedData(fixture.db);
+
+  try {
+    const handler = createMeSettingsPatchHandler(createMeRouteDeps());
+    const request = new NextRequest('http://localhost/api/me/settings', {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json', origin: 'http://localhost:3000' },
+      body: JSON.stringify({
+        slotRuleDefaults: {
+          days: 21,
+          workdayStartHour: 9,
+          workdayEndHour: 18,
+          minNoticeHours: 24
+        }
+      })
+    });
+    const response = await handler(request);
+    const payload = await response.json();
+
+    assert.equal(response.status, 200);
+    assert.deepEqual(payload.slotRuleDefaults, {
+      days: 21,
+      workdayStartHour: 9,
+      workdayEndHour: 18,
+      minNoticeHours: 24
+    });
+
+    const row = await fixture.db
+      .prepare('SELECT days, workday_start_hour, workday_end_hour, min_notice_hours FROM user_slot_rule_settings WHERE user_id = ?')
+      .get<{
+        days: number;
+        workday_start_hour: number;
+        workday_end_hour: number;
+        min_notice_hours: number;
+      }>('user-1');
+    assert.ok(row);
+    assert.deepEqual(row, {
+      days: 21,
+      workday_start_hour: 9,
+      workday_end_hour: 18,
+      min_notice_hours: 24
+    });
+  } finally {
+    await fixture.cleanup();
+  }
+});
+
+test('GET /api/me/settings enters hidden recovery mode when calendar credentials are missing', async () => {
   const fixture = await createPgRouteFixture('teamcal-me-route');
   await insertMeSeedData(fixture.db);
   await fixture.db.prepare('DELETE FROM accounts WHERE user_id = ?').run('user-1');
@@ -146,19 +211,30 @@ test('GET /api/me/settings returns 400 when calendar credentials are missing', a
     const handler = createMeSettingsGetHandler(createMeRouteDeps());
     const request = new NextRequest('http://localhost/api/me/settings', {
       method: 'GET',
-      headers: { origin: 'http://localhost:3000' }
+      headers: {
+        origin: 'http://localhost:3000',
+        cookie: 'authjs.session-token=sess-1'
+      }
     });
     const response = await handler(request);
     const payload = await response.json();
 
-    assert.equal(response.status, 400);
-    assert.equal(payload.error, 'Missing calendar credentials.');
+    assert.equal(response.status, 401);
+    assert.equal(payload.error, 'Need to confirm Google Calendar access again.');
+    assert.equal(payload.code, 'reauth_required');
+    assert.match(String(response.headers.get('set-cookie') || ''), new RegExp(`${GOOGLE_AUTH_RECOVERY_COOKIE_NAME}=1`));
+    assert.match(String(response.headers.get('set-cookie') || ''), /authjs\.session-token=/);
+
+    const sessionRow = await fixture.db
+      .prepare('SELECT session_token FROM sessions WHERE session_token = ?')
+      .get<{ session_token: string }>('sess-1');
+    assert.equal(sessionRow, undefined);
   } finally {
     await fixture.cleanup();
   }
 });
 
-test('PATCH /api/me/calendar maps calendar sync failure to 500', async () => {
+test('PATCH /api/me/calendar maps transient Google failure without invalidating session', async () => {
   const fixture = await createPgRouteFixture('teamcal-me-route');
   await insertMeSeedData(fixture.db);
 
@@ -166,20 +242,81 @@ test('PATCH /api/me/calendar maps calendar sync failure to 500', async () => {
     const handler = createMeCalendarPatchHandler(
       createMeRouteDeps({
         fetchCalendarList: async () => {
-          throw new Error('google down');
+          throw googleTransientFailureError();
         }
       })
     );
     const request = new NextRequest('http://localhost/api/me/calendar', {
       method: 'PATCH',
-      headers: { 'content-type': 'application/json', origin: 'http://localhost:3000' },
+      headers: {
+        'content-type': 'application/json',
+        origin: 'http://localhost:3000',
+        cookie: 'authjs.session-token=sess-1'
+      },
       body: JSON.stringify({ calendarSelection: { primary: { active: true } } })
     });
     const response = await handler(request);
     const payload = await response.json();
 
     assert.equal(response.status, 500);
-    assert.equal(payload.error, 'Calendar sync failed.');
+    assert.equal(payload.error, 'Google Calendar is temporarily unavailable.');
+
+    const accountRow = await fixture.db
+      .prepare('SELECT auth_status, auth_status_reason FROM accounts WHERE user_id = ?')
+      .get<{ auth_status: string; auth_status_reason: string | null }>('user-1');
+    assert.ok(accountRow);
+    assert.equal(accountRow.auth_status, 'active');
+    assert.equal(accountRow.auth_status_reason, null);
+
+    const sessionRow = await fixture.db
+      .prepare('SELECT session_token FROM sessions WHERE session_token = ?')
+      .get<{ session_token: string }>('sess-1');
+    assert.ok(sessionRow);
+  } finally {
+    await fixture.cleanup();
+  }
+});
+
+test('PATCH /api/me/calendar marks account for recovery on auth-specific Google failure', async () => {
+  const fixture = await createPgRouteFixture('teamcal-me-route');
+  await insertMeSeedData(fixture.db);
+
+  try {
+    const handler = createMeCalendarPatchHandler(
+      createMeRouteDeps({
+        fetchCalendarList: async () => {
+          throw googleReauthRequiredError('oauth_revoked');
+        }
+      })
+    );
+    const request = new NextRequest('http://localhost/api/me/calendar', {
+      method: 'PATCH',
+      headers: {
+        'content-type': 'application/json',
+        origin: 'http://localhost:3000',
+        cookie: 'authjs.session-token=sess-1'
+      },
+      body: JSON.stringify({ calendarSelection: { primary: { active: true } } })
+    });
+    const response = await handler(request);
+    const payload = await response.json();
+
+    assert.equal(response.status, 401);
+    assert.equal(payload.error, 'Need to confirm Google Calendar access again.');
+    assert.equal(payload.code, 'reauth_required');
+    assert.match(String(response.headers.get('set-cookie') || ''), new RegExp(`${GOOGLE_AUTH_RECOVERY_COOKIE_NAME}=1`));
+
+    const accountRow = await fixture.db
+      .prepare('SELECT auth_status, auth_status_reason FROM accounts WHERE user_id = ?')
+      .get<{ auth_status: string; auth_status_reason: string | null }>('user-1');
+    assert.ok(accountRow);
+    assert.equal(accountRow.auth_status, 'reauth_required');
+    assert.equal(accountRow.auth_status_reason, 'oauth_revoked');
+
+    const sessionRow = await fixture.db
+      .prepare('SELECT session_token FROM sessions WHERE session_token = ?')
+      .get<{ session_token: string }>('sess-1');
+    assert.equal(sessionRow, undefined);
   } finally {
     await fixture.cleanup();
   }

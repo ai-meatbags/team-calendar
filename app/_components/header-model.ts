@@ -1,4 +1,12 @@
 export type TeamSummary = {
+  members: Array<{
+    name: string;
+    picture: string | null;
+  }>;
+  myAvailability: {
+    workdayStartHour: number;
+    workdayEndHour: number;
+  } | null;
   name: string;
   shareId: string;
 };
@@ -16,13 +24,13 @@ export function buildUserMenuModel(teams: TeamSummary[]) {
   return {
     primaryLinks: [
       { href: '/profile', label: 'Профиль' },
-      { href: '/', label: 'Все команды' }
+      { href: '/teams', label: 'Все команды' }
     ],
     teamLinks: teams.map((team) => ({
       href: `/t/${team.shareId}`,
       label: team.name
     })),
-    createLink: { href: '/?create=1', label: 'Создать команду' },
+    createLink: { href: '/teams/new', label: 'Создать команду' },
     logoutLabel: 'Выйти'
   };
 }

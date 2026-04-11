@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { NextRequest } from 'next/server';
 import { createDbClient } from '@/infrastructure/db/client';
 import { createAvailabilityGetHandler } from './[shareId]/availability/get-handler';
+import { googleReauthRequiredError, googleTransientFailureError } from '@/application/errors';
 import { createPgRouteFixture, type PgTestDatabase } from '../test-support/pg-route-fixture';
 
 async function insertAvailabilitySeedData(db: PgTestDatabase) {
@@ -27,6 +28,11 @@ async function insertAvailabilitySeedData(db: PgTestDatabase) {
       'INSERT INTO accounts (user_id, type, provider, provider_account_id, refresh_token) VALUES (?, ?, ?, ?, ?)'
     )
     .run('user-1', 'oauth', 'google', 'google-user-1', 'enc-token');
+  await db
+    .prepare(
+      'INSERT INTO user_slot_rule_settings (id, user_id, days, workday_start_hour, workday_end_hour, min_notice_hours, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+    )
+    .run('slot-rules-1', 'user-1', 14, 10, 20, 12, nowIso, nowIso);
 }
 
 function createRequest(url: string) {
@@ -160,6 +166,98 @@ test('GET /api/teams/:shareId/availability rewrites Google member pictures to av
       payload.slots[0].members[0].picture,
       '/api/avatar?src=https%3A%2F%2Flh3.googleusercontent.com%2Fa%2Fmember-avatar%3Ds96-c'
     );
+  } finally {
+    await fixture.cleanup();
+  }
+});
+
+test('GET /api/teams/:shareId/availability applies aggregate from selected member filter', async () => {
+  const fixture = await createPgRouteFixture('teamcal-availability-route');
+  await insertAvailabilitySeedData(fixture.db);
+  const nowIso = new Date().toISOString();
+  await fixture.db
+    .prepare(
+      'INSERT INTO users (id, email, name, image, calendar_selection_default, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
+    )
+    .run('user-2', 'member@example.com', 'Member', null, '{"primary":{"active":true}}', nowIso, nowIso);
+  await fixture.db
+    .prepare(
+      'INSERT INTO team_members (id, team_id, user_id, member_public_id, calendar_selection, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
+    )
+    .run('member-2', 'team-1', 'user-2', 'memberpubid02', null, nowIso, nowIso);
+  await fixture.db
+    .prepare(
+      'INSERT INTO accounts (user_id, type, provider, provider_account_id, refresh_token) VALUES (?, ?, ?, ?, ?)'
+    )
+    .run('user-2', 'oauth', 'google', 'google-user-2', 'enc-token-2');
+  await fixture.db
+    .prepare(
+      'INSERT INTO user_slot_rule_settings (id, user_id, days, workday_start_hour, workday_end_hour, min_notice_hours, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+    )
+    .run('slot-rules-2', 'user-2', 21, 11, 18, 24, nowIso, nowIso);
+
+  try {
+    const handler = createHandler();
+    const response = await handler(
+      createRequest('http://localhost/api/teams/share-1/availability?member=memberpubid02'),
+      {
+        params: Promise.resolve({ shareId: 'share-1' })
+      }
+    );
+    const payload = await response.json();
+
+    assert.equal(response.status, 200);
+    assert.equal(payload.days, 21);
+    assert.equal(payload.workdayStartHour, 11);
+    assert.equal(payload.workdayEndHour, 18);
+    assert.equal(payload.minNoticeHours, 24);
+    assert.equal(payload.selectedMemberFilter, 'memberpubid02');
+  } finally {
+    await fixture.cleanup();
+  }
+});
+
+test('GET /api/teams/:shareId/availability returns degraded response on member reauth requirement', async () => {
+  const fixture = await createPgRouteFixture('teamcal-availability-route');
+  await insertAvailabilitySeedData(fixture.db);
+
+  try {
+    const handler = createHandler({
+      fetchBusyIntervals: async () => {
+        throw googleReauthRequiredError('oauth_revoked');
+      }
+    });
+    const response = await handler(createRequest('http://localhost/api/teams/share-1/availability'), {
+      params: Promise.resolve({ shareId: 'share-1' })
+    });
+    const payload = await response.json();
+
+    assert.equal(response.status, 409);
+    assert.equal(payload.code, 'team_calendar_access_lost');
+    assert.equal(payload.error, 'Calendar access must be confirmed for one of the team members.');
+  } finally {
+    await fixture.cleanup();
+  }
+});
+
+test('GET /api/teams/:shareId/availability returns degraded response on transient Google failure', async () => {
+  const fixture = await createPgRouteFixture('teamcal-availability-route');
+  await insertAvailabilitySeedData(fixture.db);
+
+  try {
+    const handler = createHandler({
+      fetchBusyIntervals: async () => {
+        throw googleTransientFailureError();
+      }
+    });
+    const response = await handler(createRequest('http://localhost/api/teams/share-1/availability'), {
+      params: Promise.resolve({ shareId: 'share-1' })
+    });
+    const payload = await response.json();
+
+    assert.equal(response.status, 503);
+    assert.equal(payload.code, 'team_calendar_unavailable');
+    assert.equal(payload.error, 'Google Calendar is temporarily unavailable for one of the team members.');
   } finally {
     await fixture.cleanup();
   }

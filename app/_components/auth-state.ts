@@ -1,6 +1,9 @@
+export const AUTH_SUCCESS_REDIRECT_PATH = '/teams';
+
 export function buildAuthPopupUrl(pathname: string, search: string) {
-  const next = `${pathname}${search}`;
-  return `/auth/google?popup=1&next=${encodeURIComponent(next)}`;
+  void pathname;
+  void search;
+  return `/auth/google?popup=1&next=${encodeURIComponent(AUTH_SUCCESS_REDIRECT_PATH)}`;
 }
 
 export function buildLogoutUrl(pathname: string, search: string) {

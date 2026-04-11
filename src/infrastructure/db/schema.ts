@@ -28,7 +28,10 @@ export const accounts = pgTable(
     tokenType: text('token_type'),
     scope: text('scope'),
     idToken: text('id_token'),
-    sessionState: text('session_state')
+    sessionState: text('session_state'),
+    authStatus: text('auth_status').notNull().default('active'),
+    authStatusUpdatedAt: text('auth_status_updated_at'),
+    authStatusReason: text('auth_status_reason')
   },
   (table) => [
     primaryKey({ columns: [table.provider, table.providerAccountId] }),
@@ -90,6 +93,36 @@ export const teamMembers = pgTable(
   ]
 );
 
+export const userSlotRuleSettings = pgTable(
+  TABLE_NAMES.userSlotRuleSettings,
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull(),
+    days: integer('days').notNull(),
+    workdayStartHour: integer('workday_start_hour').notNull(),
+    workdayEndHour: integer('workday_end_hour').notNull(),
+    minNoticeHours: integer('min_notice_hours').notNull(),
+    createdAt: text('created_at').notNull(),
+    updatedAt: text('updated_at').notNull()
+  },
+  (table) => [uniqueIndex('user_slot_rule_settings_user_uq').on(table.userId)]
+);
+
+export const teamMemberSlotRuleOverrides = pgTable(
+  TABLE_NAMES.teamMemberSlotRuleOverrides,
+  {
+    id: text('id').primaryKey(),
+    teamMemberId: text('team_member_id').notNull(),
+    days: integer('days').notNull(),
+    workdayStartHour: integer('workday_start_hour').notNull(),
+    workdayEndHour: integer('workday_end_hour').notNull(),
+    minNoticeHours: integer('min_notice_hours').notNull(),
+    createdAt: text('created_at').notNull(),
+    updatedAt: text('updated_at').notNull()
+  },
+  (table) => [uniqueIndex('team_member_slot_rule_overrides_member_uq').on(table.teamMemberId)]
+);
+
 export const teamWebhookSubscriptions = pgTable(
   TABLE_NAMES.teamWebhookSubscriptions,
   {
@@ -104,7 +137,10 @@ export const teamWebhookSubscriptions = pgTable(
     updatedAt: text('updated_at').notNull(),
     lastDeliveryStatus: text('last_delivery_status').notNull().default('never'),
     lastDeliveryAt: text('last_delivery_at'),
-    lastError: text('last_error')
+    lastError: text('last_error'),
+    jwtSecretEncrypted: text('jwt_secret_encrypted').notNull(),
+    jwtAudience: text('jwt_audience').notNull(),
+    secretLastRotatedAt: text('secret_last_rotated_at')
   },
   (table) => [
     uniqueIndex('team_webhook_subscription_target_uq').on(
@@ -136,6 +172,8 @@ export const schema = {
   verificationTokens,
   teams,
   teamMembers,
+  userSlotRuleSettings,
+  teamMemberSlotRuleOverrides,
   teamWebhookSubscriptions,
   rateLimitCounters
 };

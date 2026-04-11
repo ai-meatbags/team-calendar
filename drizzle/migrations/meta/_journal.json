@@ -22,6 +22,34 @@
       "when": 1775216826217,
       "tag": "0002_thick_polaris",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1775494953760,
+      "tag": "0003_team_webhooks",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1775831607147,
+      "tag": "0004_tense_thor_girl",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1775838600000,
+      "tag": "0005_google_auth_recovery",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1775914200000,
+      "tag": "0006_slot_rule_settings",
+      "breakpoints": true
     }
   ]
 }

@@ -1,14 +1,24 @@
+import { redirect } from 'next/navigation';
 import HomePageClient from '../_components/home-page-client';
 
 type HomePageProps = {
-  searchParams?: Promise<{ create?: string | string[] }>;
+  searchParams?: Promise<{ auth?: string | string[] }>;
 };
 
-export default async function HomePage({ searchParams }: HomePageProps) {
-  const resolvedSearchParams = (await searchParams) || {};
-  const createParam = resolvedSearchParams.create;
-  const openCreateFromQuery =
-    Array.isArray(createParam) ? createParam.includes('1') : createParam === '1';
+async function resolveHomeSession() {
+  const { auth } = await import('@/infrastructure/auth/auth-options');
+  return auth();
+}
 
-  return <HomePageClient openCreateFromQuery={openCreateFromQuery} />;
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const session = await resolveHomeSession();
+  if (session?.user) {
+    redirect('/teams');
+  }
+
+  const resolvedSearchParams = (await searchParams) || {};
+  const authParam = resolvedSearchParams.auth;
+  const authStatusFromQuery = Array.isArray(authParam) ? authParam[0] : authParam || null;
+
+  return <HomePageClient authStatusFromQuery={authStatusFromQuery} />;
 }

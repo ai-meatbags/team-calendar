@@ -2,7 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { apiFetch } from './api-fetch';
-import { buildAuthPopupUrl, buildLogoutUrl, shouldAcceptAuthMessage } from './auth-state';
+import {
+  AUTH_SUCCESS_REDIRECT_PATH,
+  buildAuthPopupUrl,
+  buildLogoutUrl,
+  shouldAcceptAuthMessage
+} from './auth-state';
 
 export type CurrentUser = {
   id: string;
@@ -58,7 +63,7 @@ export function useAuth() {
     );
 
     if (!popup) {
-      window.location.href = `/auth/google?next=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+      window.location.href = `/auth/google?next=${encodeURIComponent(AUTH_SUCCESS_REDIRECT_PATH)}`;
       return;
     }
 

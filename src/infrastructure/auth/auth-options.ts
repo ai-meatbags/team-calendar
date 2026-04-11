@@ -10,7 +10,8 @@ const authSchema = {
   usersTable: schema.users,
   accountsTable: schema.accounts,
   sessionsTable: schema.sessions,
-  verificationTokensTable: schema.verificationTokens
+  verificationTokensTable: schema.verificationTokens,
+  userSlotRuleSettings: schema.userSlotRuleSettings
 };
 
 let cachedAuthKit: AuthKit | null = null;
@@ -20,6 +21,7 @@ function createAuthConfig(): NextAuthConfig {
 
   return {
     adapter: createEncryptedDrizzleAdapter(runtime.dbClient.db, authSchema, runtime.tokenVault),
+    trustHost: true,
     session: {
       strategy: 'database'
     },
@@ -36,8 +38,7 @@ function createAuthConfig(): NextAuthConfig {
               'email',
               'profile'
             ].join(' '),
-            access_type: 'offline',
-            prompt: 'consent'
+            access_type: 'offline'
           }
         }
       })
