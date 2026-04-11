@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server';
+import {
+  buildGoogleAuthorizationParams,
+  hasGoogleAuthRecoverySignal
+} from '@/infrastructure/auth/google-auth-flow';
 
 type SignInFn = (
   provider?: string,
-  options?: { redirect?: boolean; redirectTo?: string }
+  options?: { redirect?: boolean; redirectTo?: string },
+  authorizationParams?: string[][] | Record<string, string> | string | URLSearchParams
 ) => Promise<string>;
 
 export type AuthGoogleDeps = {
@@ -24,11 +29,12 @@ export function createAuthGoogleHandler(deps: AuthGoogleDeps) {
     const redirectTo = popup
       ? `/auth/popup-complete${next ? `?next=${encodeURIComponent(next)}` : ''}`
       : next || '/';
+    const recoveryMode = hasGoogleAuthRecoverySignal(request.headers.get('cookie'));
 
     const target = await deps.signIn('google', {
       redirect: false,
       redirectTo
-    });
+    }, buildGoogleAuthorizationParams(recoveryMode));
 
     return NextResponse.redirect(target);
   };

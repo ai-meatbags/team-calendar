@@ -1,4 +1,5 @@
 import { google } from 'googleapis';
+import { normalizeGoogleApiError } from '@/infrastructure/auth/google-auth-errors';
 
 export type GoogleCalendarListItem = {
   id?: string | null;
@@ -24,12 +25,16 @@ export async function fetchCalendarList(params: {
   let pageToken: string | undefined;
 
   do {
-    const response = await calendar.calendarList.list({
-      maxResults: 250,
-      pageToken
-    });
-    items.push(...(response.data?.items || []));
-    pageToken = response.data?.nextPageToken || undefined;
+    try {
+      const response = await calendar.calendarList.list({
+        maxResults: 250,
+        pageToken
+      });
+      items.push(...(response.data?.items || []));
+      pageToken = response.data?.nextPageToken || undefined;
+    } catch (error) {
+      throw normalizeGoogleApiError(error);
+    }
   } while (pageToken);
 
   return items;

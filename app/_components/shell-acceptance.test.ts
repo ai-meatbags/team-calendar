@@ -7,7 +7,7 @@ import {
   buildLogoutUrl,
   shouldAcceptAuthMessage
 } from './auth-state';
-import { buildCreatedTeamPath, LANDING_SCREENSHOT_PATH, resolveCreateBackMode } from './home-page-state';
+import { buildCreatedTeamPath, LANDING_SCREENSHOT_PATH } from './home-page-state';
 import {
   resolveUserMenuState,
   shouldShowEmptyTeamsMessage
@@ -33,7 +33,7 @@ test('landing assets are available under Next public runtime paths', () => {
 test('auth popup and logout urls preserve current pathname and query', () => {
   assert.equal(
     buildAuthPopupUrl('/profile', '?tab=settings'),
-    '/auth/google?popup=1&next=%2Fprofile%3Ftab%3Dsettings'
+    '/auth/google?popup=1&next=%2Fteams'
   );
   assert.equal(
     buildLogoutUrl('/profile', '?tab=settings'),
@@ -107,8 +107,7 @@ test('user menu reducer preserves acceptance open-close behavior', () => {
   );
 });
 
-test('home and profile acceptance helpers preserve create-team and redirect behavior', () => {
-  assert.equal(resolveCreateBackMode(), 'teams');
+test('home and profile acceptance helpers preserve team routing and redirect behavior', () => {
   assert.equal(buildCreatedTeamPath('share-123'), '/t/share-123');
   assert.equal(shouldShowEmptyTeamsMessage({ hasTeamsLoaded: true, teamsCount: 0 }), true);
   assert.equal(shouldShowEmptyTeamsMessage({ hasTeamsLoaded: false, teamsCount: 0 }), false);
@@ -124,4 +123,17 @@ test('profile page keeps route-level server redirect guard', () => {
   assert.match(profilePageSource, /import \{ redirect \} from 'next\/navigation'/);
   assert.match(profilePageSource, /const session = await resolveProfileSession\(\)/);
   assert.match(profilePageSource, /if \(!session\?\.user\) \{\s*redirect\('\//);
+});
+
+test('teams pages keep explicit route-level guards and no query-driven create mode', () => {
+  const homePageSource = readFileSync(path.join(repoRoot, 'app/(pages)/page.tsx'), 'utf8');
+  const teamsPageSource = readFileSync(path.join(repoRoot, 'app/(pages)/teams/page.tsx'), 'utf8');
+  const createTeamPageSource = readFileSync(path.join(repoRoot, 'app/(pages)/teams/new/page.tsx'), 'utf8');
+
+  assert.match(homePageSource, /redirect\('\/teams'\)/);
+  assert.match(teamsPageSource, /const session = await resolveTeamsSession\(\)/);
+  assert.match(teamsPageSource, /if \(!session\?\.user\) \{\s*redirect\('\//);
+  assert.match(createTeamPageSource, /const session = await resolveCreateTeamSession\(\)/);
+  assert.match(createTeamPageSource, /if \(!session\?\.user\) \{\s*redirect\('\//);
+  assert.doesNotMatch(homePageSource, /create\?: string/);
 });

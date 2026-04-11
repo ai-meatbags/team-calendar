@@ -4,17 +4,20 @@ import { NextRequest } from 'next/server';
 import { GET as popupCompleteGet } from '../../auth/popup-complete/route';
 import { createAuthGoogleHandler } from './google/handler';
 import { createAuthLogoutHandler, resolveRedirectPath } from './logout/handler';
+import { GOOGLE_AUTH_RECOVERY_COOKIE_NAME } from '@/infrastructure/auth/google-auth-flow';
 
 test('GET /api/auth/google starts Google auth and preserves popup completion callback', async () => {
   const calls: Array<{
     provider: string | undefined;
     options: { redirect?: boolean; redirectTo?: string };
+    authorizationParams?: Record<string, string> | string[][] | string | URLSearchParams;
   }> = [];
   const handler = createAuthGoogleHandler({
-    signIn: async (provider, options) => {
+    signIn: async (provider, options, authorizationParams) => {
       calls.push({
         provider,
-        options: options as { redirect?: boolean; redirectTo?: string }
+        options: options as { redirect?: boolean; redirectTo?: string },
+        authorizationParams
       });
       return 'https://accounts.google.com/o/oauth2/v2/auth?state=test-state';
     }
@@ -36,6 +39,49 @@ test('GET /api/auth/google starts Google auth and preserves popup completion cal
       options: {
         redirect: false,
         redirectTo: '/auth/popup-complete?next=%2Ft%2Fshare-1%3Fduration%3D60'
+      },
+      authorizationParams: undefined
+    }
+  ]);
+});
+
+test('GET /api/auth/google enables hidden recovery mode when recovery cookie is present', async () => {
+  const calls: Array<{
+    provider: string | undefined;
+    options: { redirect?: boolean; redirectTo?: string };
+    authorizationParams?: Record<string, string> | string[][] | string | URLSearchParams;
+  }> = [];
+  const handler = createAuthGoogleHandler({
+    signIn: async (provider, options, authorizationParams) => {
+      calls.push({
+        provider,
+        options: options as { redirect?: boolean; redirectTo?: string },
+        authorizationParams
+      });
+      return 'https://accounts.google.com/o/oauth2/v2/auth?state=recovery-state';
+    }
+  });
+
+  const response = await handler(
+    new Request('http://localhost/api/auth/google?next=%2Fprofile', {
+      headers: {
+        cookie: `${GOOGLE_AUTH_RECOVERY_COOKIE_NAME}=1`
+      }
+    })
+  );
+
+  assert.equal(response.status, 307);
+  assert.equal(response.headers.get('location'), 'https://accounts.google.com/o/oauth2/v2/auth?state=recovery-state');
+  assert.deepEqual(calls, [
+    {
+      provider: 'google',
+      options: {
+        redirect: false,
+        redirectTo: '/profile'
+      },
+      authorizationParams: {
+        access_type: 'offline',
+        prompt: 'consent'
       }
     }
   ]);
@@ -46,8 +92,11 @@ test('GET /auth/popup-complete returns popup bridge html', async () => {
     new Request('http://localhost/auth/popup-complete?next=%2Ft%2Fshare-1')
   );
   const body = await response.text();
+  const setCookie = response.headers.get('set-cookie');
 
   assert.equal(response.status, 200);
+  assert.ok(setCookie);
+  assert.match(String(setCookie), new RegExp(`${GOOGLE_AUTH_RECOVERY_COOKIE_NAME}=`));
   assert.match(body, /auth:success/);
   assert.match(body, /BroadcastChannel\('team-calendar-auth'\)/);
   assert.match(body, /team-calendar-auth-success/);

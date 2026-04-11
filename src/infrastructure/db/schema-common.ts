@@ -7,6 +7,8 @@ export const TABLE_NAMES = {
   verificationTokens: 'verification_tokens',
   teams: 'teams',
   teamMembers: 'team_members',
+  userSlotRuleSettings: 'user_slot_rule_settings',
+  teamMemberSlotRuleOverrides: 'team_member_slot_rule_overrides',
   teamWebhookSubscriptions: 'team_webhook_subscriptions',
   rateLimitCounters: 'rate_limit_counters'
 } as const;
@@ -76,6 +78,52 @@ export const SCHEMA_MANIFEST = {
     ],
     notNull: ['id', 'team_id', 'user_id', 'member_public_id', 'created_at', 'updated_at']
   },
+  user_slot_rule_settings: {
+    columns: [
+      'id',
+      'user_id',
+      'days',
+      'workday_start_hour',
+      'workday_end_hour',
+      'min_notice_hours',
+      'created_at',
+      'updated_at'
+    ],
+    unique: [['user_id']],
+    notNull: [
+      'id',
+      'user_id',
+      'days',
+      'workday_start_hour',
+      'workday_end_hour',
+      'min_notice_hours',
+      'created_at',
+      'updated_at'
+    ]
+  },
+  team_member_slot_rule_overrides: {
+    columns: [
+      'id',
+      'team_member_id',
+      'days',
+      'workday_start_hour',
+      'workday_end_hour',
+      'min_notice_hours',
+      'created_at',
+      'updated_at'
+    ],
+    unique: [['team_member_id']],
+    notNull: [
+      'id',
+      'team_member_id',
+      'days',
+      'workday_start_hour',
+      'workday_end_hour',
+      'min_notice_hours',
+      'created_at',
+      'updated_at'
+    ]
+  },
   team_webhook_subscriptions: {
     columns: [
       'id',
@@ -89,7 +137,10 @@ export const SCHEMA_MANIFEST = {
       'updated_at',
       'last_delivery_status',
       'last_delivery_at',
-      'last_error'
+      'last_error',
+      'jwt_secret_encrypted',
+      'jwt_audience',
+      'secret_last_rotated_at'
     ],
     unique: [['team_id_raw', 'event_type', 'target_url']],
     notNull: [
@@ -101,7 +152,9 @@ export const SCHEMA_MANIFEST = {
       'created_by_user_id_raw',
       'created_at',
       'updated_at',
-      'last_delivery_status'
+      'last_delivery_status',
+      'jwt_secret_encrypted',
+      'jwt_audience'
     ]
   },
   rate_limit_counters: {

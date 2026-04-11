@@ -7,6 +7,10 @@ import {
   buildEmbeddedPostgresUrl,
   resolveEmbeddedPostgresConfig
 } from '../src/infrastructure/db/runtime-defaults';
+import {
+  applyRuntimeMigrations,
+  shouldRunRuntimeMigrations
+} from '../src/infrastructure/db/apply-runtime-migrations';
 import { findAvailablePort, rewriteLocalAppUrls } from '../src/infrastructure/runtime/port-resolution';
 
 function quoteIdentifier(value: string) {
@@ -155,6 +159,9 @@ async function main() {
   }
 
   if (process.env.DATABASE_URL) {
+    if (shouldRunRuntimeMigrations(command, args)) {
+      await applyRuntimeMigrations(process.env.DATABASE_URL);
+    }
     const result = await spawnCommand(command, args, childEnv);
     if (result.signal) {
       process.kill(process.pid, result.signal);
@@ -165,6 +172,9 @@ async function main() {
 
   const { instance, databaseUrl } = await startEmbeddedPostgres();
   try {
+    if (shouldRunRuntimeMigrations(command, args)) {
+      await applyRuntimeMigrations(databaseUrl);
+    }
     const result = await spawnCommand(command, args, {
       ...childEnv,
       DATABASE_URL: databaseUrl

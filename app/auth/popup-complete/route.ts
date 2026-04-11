@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { clearGoogleAuthRecoveryCookie } from '@/infrastructure/auth/google-auth-flow';
 
 export const runtime = 'nodejs';
 
@@ -86,11 +87,15 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const redirectPath = resolveNextPath(url.searchParams.get('next'));
 
-  return new NextResponse(buildPopupHtml(redirectPath), {
+  const response = new NextResponse(buildPopupHtml(redirectPath), {
     status: 200,
     headers: {
       'content-type': 'text/html; charset=utf-8',
       'cache-control': 'no-store'
     }
   });
+
+  clearGoogleAuthRecoveryCookie(response);
+
+  return response;
 }

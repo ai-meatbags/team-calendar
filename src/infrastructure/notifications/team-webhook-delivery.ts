@@ -4,6 +4,7 @@ type DeliverWebhookParams = {
   targetUrl: string;
   payload: unknown;
   nodeEnv: string;
+  headers?: Record<string, string>;
   fetchImpl?: typeof fetch;
   timeoutMs?: number;
 };
@@ -33,7 +34,8 @@ export async function deliverTeamWebhookRequest(params: DeliverWebhookParams): P
     const response = await fetchImpl(targetUrl, {
       method: 'POST',
       headers: {
-        'content-type': 'application/json'
+        'content-type': 'application/json',
+        ...(params.headers || {})
       },
       body: JSON.stringify(params.payload),
       signal: controller.signal

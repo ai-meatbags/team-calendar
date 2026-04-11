@@ -9,6 +9,7 @@ import {
   executeTeamShareAction,
   executeTeamWebhookCreateAction,
   executeTeamWebhookDeleteAction,
+  executeTeamWebhookRotateAction,
   executeTeamWebhookToggleAction,
   resolveTeamBookingSubmission,
   resolveTeamWebhookCreateSubmission,
@@ -20,7 +21,7 @@ const repoRoot = process.cwd();
 
 test('team page helpers are sourced from shared module instead of duplicated legacy code', () => {
   const nextSource = readFileSync(
-    path.join(repoRoot, 'app/_components/team-page/team-page-utils.ts'),
+    path.join(repoRoot, 'app/_components/team-page/team-page-members.ts'),
     'utf8'
   );
   const sharedSource = readFileSync(
@@ -243,12 +244,27 @@ test('team webhook create submission trims url and validates empty input', () =>
     message: 'Укажи URL вебхука'
   });
 
-  assert.deepEqual(resolveTeamWebhookCreateSubmission({ targetUrl: ' https://hooks.example.com/booking ' }), {
-    ok: true,
-    payload: {
-      targetUrl: 'https://hooks.example.com/booking'
+  assert.deepEqual(
+    resolveTeamWebhookCreateSubmission({ targetUrl: ' https://hooks.example.com/booking ' }),
+    {
+      ok: false,
+      message: 'Сначала сгенерируйте секрет'
     }
-  });
+  );
+
+  assert.deepEqual(
+    resolveTeamWebhookCreateSubmission({
+      targetUrl: ' https://hooks.example.com/booking ',
+      provisioningToken: ' draft-token '
+    }),
+    {
+      ok: true,
+      payload: {
+        targetUrl: 'https://hooks.example.com/booking',
+        provisioningToken: 'draft-token'
+      }
+    }
+  );
 });
 
 test('team webhook actions call expected API endpoints', async () => {
@@ -257,6 +273,7 @@ test('team webhook actions call expected API endpoints', async () => {
   await executeTeamWebhookCreateAction({
     shareId: 'share-123',
     targetUrl: 'https://hooks.example.com/booking',
+    provisioningToken: 'draft-token',
     apiFetch: async (path, options) => {
       calls.push({
         path,
@@ -294,11 +311,24 @@ test('team webhook actions call expected API endpoints', async () => {
     }
   });
 
+  await executeTeamWebhookRotateAction({
+    shareId: 'share-123',
+    webhookId: 'webhook-1',
+    apiFetch: async (path, options) => {
+      calls.push({
+        path,
+        method: options?.method,
+        body: String(options?.body || '')
+      });
+      return { webhook: { id: 'webhook-1' } };
+    }
+  });
+
   assert.deepEqual(calls, [
     {
       path: '/api/teams/share-123/integrations/webhooks',
       method: 'POST',
-      body: '{"targetUrl":"https://hooks.example.com/booking"}'
+      body: '{"targetUrl":"https://hooks.example.com/booking","provisioningToken":"draft-token"}'
     },
     {
       path: '/api/teams/share-123/integrations/webhooks/webhook-1',
@@ -308,6 +338,11 @@ test('team webhook actions call expected API endpoints', async () => {
     {
       path: '/api/teams/share-123/integrations/webhooks/webhook-1',
       method: 'DELETE',
+      body: ''
+    },
+    {
+      path: '/api/teams/share-123/integrations/webhooks/webhook-1/rotate',
+      method: 'POST',
       body: ''
     }
   ]);

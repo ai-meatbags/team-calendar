@@ -12,6 +12,7 @@ export const PATCH = createTeamWebhookPatchHandler({
   auth,
   createDbClient: () => getServerRuntime().dbClient,
   getConfig: () => getServerRuntime().env,
+  getTokenVault: () => getServerRuntime().tokenVault,
   isSameOriginRequest
 });
 
@@ -19,5 +20,6 @@ export const DELETE = createTeamWebhookDeleteHandler({
   auth,
   createDbClient: () => getServerRuntime().dbClient,
   getConfig: () => getServerRuntime().env,
+  getTokenVault: () => getServerRuntime().tokenVault,
   isSameOriginRequest
 });

@@ -1,6 +1,8 @@
+import { randomUUID } from 'node:crypto';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import type { Adapter } from 'next-auth/adapters';
 import type { TokenVaultPort } from '@/ports/security';
+import { buildDefaultSlotRuleSettingsInsert } from '@/application/usecases/slot-rules-settings';
 import { logger } from '@/infrastructure/logging/logger';
 
 type AdapterFactory = (db: unknown, schema: unknown) => Adapter;
@@ -39,7 +41,10 @@ function mapAccountForSchema(account: AuthAccountInput, encryptedRefreshToken: s
     tokenType: pickFirstDefined(account.token_type, account.tokenType),
     scope: account.scope,
     idToken: pickFirstDefined(account.id_token, account.idToken),
-    sessionState: pickFirstDefined(account.session_state, account.sessionState)
+    sessionState: pickFirstDefined(account.session_state, account.sessionState),
+    authStatus: pickFirstDefined(account.auth_status, account.authStatus) ?? 'active',
+    authStatusUpdatedAt: pickFirstDefined(account.auth_status_updated_at, account.authStatusUpdatedAt),
+    authStatusReason: pickFirstDefined(account.auth_status_reason, account.authStatusReason)
   };
 }
 
@@ -64,11 +69,24 @@ export function createEncryptedDrizzleAdapter(
       }
 
       const timestamp = nowIso();
-      return originalCreateUser({
+      const createdUser = await originalCreateUser({
         ...user,
         createdAt: user?.createdAt || timestamp,
         updatedAt: user?.updatedAt || timestamp
       });
+
+      const slotRuleSettingsTable = (schema as any).userSlotRuleSettings;
+      if (slotRuleSettingsTable && createdUser?.id) {
+        await (db as any).insert(slotRuleSettingsTable).values(
+          buildDefaultSlotRuleSettingsInsert({
+            id: randomUUID(),
+            userId: String(createdUser.id),
+            createdAt: timestamp
+          })
+        );
+      }
+
+      return createdUser;
     },
     async updateUser(user: any): Promise<any> {
       if (!originalUpdateUser) {

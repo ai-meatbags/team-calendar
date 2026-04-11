@@ -3,10 +3,18 @@ import { badRequestError } from '@/application/errors';
 export const TEAM_WEBHOOK_EVENT_TYPES = ['booking.requested'] as const;
 export const TEAM_WEBHOOK_STATUSES = ['active', 'disabled'] as const;
 export const TEAM_WEBHOOK_DELIVERY_STATUSES = ['never', 'success', 'failed'] as const;
+export const TEAM_WEBHOOK_SECRET_STATUSES = ['configured', 'cutover_required'] as const;
+export const TEAM_WEBHOOK_JWT_ISSUER = 'teamcal';
+export const TEAM_WEBHOOK_JWT_ALGORITHM = 'HS256';
+export const TEAM_WEBHOOK_JWT_TTL_SECONDS = 120;
+export const TEAM_WEBHOOK_PROVISIONING_DRAFT_TTL_SECONDS = 900;
+export const TEAM_WEBHOOK_LEGACY_SECRET_PLACEHOLDER = '__teamcal_jwt_secret_cutover_required__';
+export const TEAM_WEBHOOK_LAST_ERROR_MAX_LENGTH = 400;
 
 export type TeamWebhookEventType = (typeof TEAM_WEBHOOK_EVENT_TYPES)[number];
 export type TeamWebhookStatus = (typeof TEAM_WEBHOOK_STATUSES)[number];
 export type TeamWebhookDeliveryStatus = (typeof TEAM_WEBHOOK_DELIVERY_STATUSES)[number];
+export type TeamWebhookSecretStatus = (typeof TEAM_WEBHOOK_SECRET_STATUSES)[number];
 
 const DEFAULT_EVENT_TYPE: TeamWebhookEventType = 'booking.requested';
 const DEFAULT_STATUS: TeamWebhookStatus = 'active';
@@ -76,6 +84,37 @@ export function getTeamWebhookDeliveryStatus(value: unknown): TeamWebhookDeliver
     return value;
   }
   return DEFAULT_DELIVERY_STATUS;
+}
+
+export function buildTeamWebhookAudience(webhookId: string) {
+  return `team-webhook:${String(webhookId).trim()}`;
+}
+
+export function isTeamWebhookSecretProvisioned(value: unknown) {
+  const normalized = String(value || '').trim();
+  if (!normalized) {
+    return false;
+  }
+
+  return normalized !== TEAM_WEBHOOK_LEGACY_SECRET_PLACEHOLDER;
+}
+
+export function getTeamWebhookSecretStatus(value: unknown): TeamWebhookSecretStatus {
+  return isTeamWebhookSecretProvisioned(value) ? 'configured' : 'cutover_required';
+}
+
+export function normalizeTeamWebhookLastError(value: unknown) {
+  const normalized = String(value || '').trim();
+  if (!normalized) {
+    return null;
+  }
+
+  const redacted = normalized
+    .replace(/authorization:\s*bearer\s+[^\s,;]+/gi, 'authorization: bearer [redacted]')
+    .replace(/bearer\s+(?!\[redacted\])[a-z0-9\-._~+/]+=*/gi, 'bearer [redacted]')
+    .replace(/(["']?(?:token|secret|password)["']?\s*[:=]\s*["']?)([^"',\s]+)/gi, '$1[redacted]');
+
+  return redacted.slice(0, TEAM_WEBHOOK_LAST_ERROR_MAX_LENGTH);
 }
 
 export function sanitizeTeamWebhookTargetUrl(value: unknown) {

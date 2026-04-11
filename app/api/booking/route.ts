@@ -1,7 +1,9 @@
+import crypto from 'node:crypto';
 import { enforceDbRateLimit } from '@/infrastructure/ratelimit/db-rate-limit';
 import { getClientFingerprint, isSameOriginRequest } from '@/interface/http/request';
 import { sendBookingNotifications } from '@/infrastructure/notifications/booking-delivery';
 import { deliverTeamWebhookRequest } from '@/infrastructure/notifications/team-webhook-delivery';
+import { buildTeamWebhookHeaders, createTeamWebhookJwt } from '@/infrastructure/notifications/team-webhook-jwt';
 import { logger } from '@/infrastructure/logging/logger';
 import { auth } from '@/infrastructure/auth/auth-options';
 import { getServerRuntime } from '@/composition/server-runtime';
@@ -27,9 +29,30 @@ export const POST = createBookingPostHandler({
       {
         createDbClient: () => getServerRuntime().dbClient,
         deliverWebhookRequest: deliverTeamWebhookRequest,
+        createTeamWebhookHeaders: ({ sharedSecret, audience, teamId, deliveryId, eventType, eventId, issuedAt }) => {
+          const { token, issuedAtSeconds } = createTeamWebhookJwt({
+            sharedSecret,
+            audience,
+            teamId,
+            deliveryId,
+            eventType,
+            issuedAt
+          });
+
+          return buildTeamWebhookHeaders({
+            authorizationToken: token,
+            eventType,
+            eventId,
+            deliveryId,
+            issuedAtSeconds
+          });
+        },
+        decryptSecret: getServerRuntime().tokenVault.decrypt,
+        generateId: crypto.randomUUID,
         logger,
         deliveryEnabled: getServerRuntime().env.BOOKING_WEBHOOK_DELIVERY_ENABLED,
-        nodeEnv: getServerRuntime().env.NODE_ENV
+        nodeEnv: getServerRuntime().env.NODE_ENV,
+        now: getServerRuntime().now
       },
       {
         teamId,

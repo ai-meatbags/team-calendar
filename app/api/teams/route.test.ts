@@ -15,6 +15,11 @@ async function insertTeamsSeedData(db: PgTestDatabase) {
     .run('user-1', 'owner@example.com', 'Owner', null, '{}', nowIso, nowIso);
   await db
     .prepare(
+      'INSERT INTO user_slot_rule_settings (id, user_id, days, workday_start_hour, workday_end_hour, min_notice_hours, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+    )
+    .run('slot-1', 'user-1', 14, 10, 20, 12, nowIso, nowIso);
+  await db
+    .prepare(
       'INSERT INTO teams (id, name, share_id, owner_id, privacy, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
     )
     .run('team-1', 'Core Team', 'share-1', 'user-1', 'public', nowIso, nowIso);
@@ -80,7 +85,17 @@ test('GET /api/teams returns user teams', async () => {
     const payload = await response.json();
 
     assert.equal(response.status, 200);
-    assert.deepEqual(payload.teams, [{ name: 'Core Team', shareId: 'share-1' }]);
+    assert.deepEqual(payload.teams, [
+      {
+        name: 'Core Team',
+        shareId: 'share-1',
+        members: [{ name: 'Owner', picture: null }],
+        myAvailability: {
+          workdayStartHour: 10,
+          workdayEndHour: 20
+        }
+      }
+    ]);
   } finally {
     await fixture.cleanup();
   }
