@@ -56,7 +56,7 @@ Notes:
 - embedded mode stores database files in the named volume `team-calendar-embedded-data`
 - external mode does not create a database container and fails fast if `DATABASE_URL` is missing
 - compose files no longer contain URL/path defaults; deployment env must define `PORT`, `APP_BASE_URL`, `NEXTAUTH_URL` and other required values explicitly
-- compose deployment uses container-only vars such as `CONTAINER_APP_HOME` and `CONTAINER_EMBEDDED_POSTGRES_DATA_DIR`; this avoids mixing local host paths with in-container paths
+- container-only paths are fixed inside the compose files; deployment env should only provide runtime values such as ports, URLs, secrets and OAuth credentials
 - both deploy files require `NEXTAUTH_SECRET` and `TOKEN_ENC_KEY`; external mode also requires `DATABASE_URL`
 
 ## Database commands

@@ -4,13 +4,13 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        APP_HOME: ${CONTAINER_APP_HOME:?CONTAINER_APP_HOME is required}
+        APP_HOME: /app
         PORT: ${PORT:?PORT is required}
     restart: unless-stopped
     ports:
       - "${PORT:?PORT is required}:${PORT:?PORT is required}"
     environment:
-      APP_HOME: ${CONTAINER_APP_HOME:?CONTAINER_APP_HOME is required}
+      APP_HOME: /app
       PORT: ${PORT:?PORT is required}
       NODE_ENV: production
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
@@ -20,18 +20,18 @@ services:
       TOKEN_ENC_KEY: ${TOKEN_ENC_KEY:?TOKEN_ENC_KEY is required}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
-      RATE_LIMIT_WINDOW_MIN: ${RATE_LIMIT_WINDOW_MIN}
-      RATE_LIMIT_AVAILABILITY_MAX: ${RATE_LIMIT_AVAILABILITY_MAX}
-      RATE_LIMIT_BOOKING_MAX: ${RATE_LIMIT_BOOKING_MAX}
-      SMTP_HOST: ${SMTP_HOST}
-      SMTP_PORT: ${SMTP_PORT}
-      SMTP_SECURE: ${SMTP_SECURE}
-      SMTP_USER: ${SMTP_USER}
-      SMTP_PASS: ${SMTP_PASS}
-      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL}
-      SMTP_FROM_NAME: ${SMTP_FROM_NAME}
-      BOOKING_WEBHOOK_URL: ${BOOKING_WEBHOOK_URL}
-      BOOKING_TOKEN: ${BOOKING_TOKEN}
+      RATE_LIMIT_WINDOW_MIN: ${RATE_LIMIT_WINDOW_MIN:-15}
+      RATE_LIMIT_AVAILABILITY_MAX: ${RATE_LIMIT_AVAILABILITY_MAX:-120}
+      RATE_LIMIT_BOOKING_MAX: ${RATE_LIMIT_BOOKING_MAX:-30}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME:-Team Calendar}
+      BOOKING_WEBHOOK_URL: ${BOOKING_WEBHOOK_URL:-}
+      BOOKING_TOKEN: ${BOOKING_TOKEN:-}
     command: ["sh", "-lc", "npm run db:migrate && npm run start"]
     healthcheck:
       test:
