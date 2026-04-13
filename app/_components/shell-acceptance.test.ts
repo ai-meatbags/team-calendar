@@ -129,8 +129,11 @@ test('teams pages keep explicit route-level guards and no query-driven create mo
   const homePageSource = readFileSync(path.join(repoRoot, 'app/(pages)/page.tsx'), 'utf8');
   const teamsPageSource = readFileSync(path.join(repoRoot, 'app/(pages)/teams/page.tsx'), 'utf8');
   const createTeamPageSource = readFileSync(path.join(repoRoot, 'app/(pages)/teams/new/page.tsx'), 'utf8');
+  const homePageClientSource = readFileSync(path.join(repoRoot, 'app/_components/home-page-client.tsx'), 'utf8');
 
-  assert.match(homePageSource, /redirect\('\/teams'\)/);
+  assert.doesNotMatch(homePageSource, /auth-options/);
+  assert.doesNotMatch(homePageSource, /redirect\('\/teams'\)/);
+  assert.match(homePageClientSource, /router\.replace\('\/teams'\)/);
   assert.match(teamsPageSource, /const session = await resolveTeamsSession\(\)/);
   assert.match(teamsPageSource, /if \(!session\?\.user\) \{\s*redirect\('\//);
   assert.match(createTeamPageSource, /const session = await resolveCreateTeamSession\(\)/);

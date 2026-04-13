@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    env:
+      LANG: en_US.UTF-8
+      LC_ALL: en_US.UTF-8
+      NODE_ENV: test
+      PORT: 3000
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: test-nextauth-secret
+      TOKEN_ENC_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      GOOGLE_CLIENT_ID: test-google-client-id
+      GOOGLE_CLIENT_SECRET: test-google-client-secret
+      BOOKING_WEBHOOK_DELIVERY_ENABLED: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build app
+        run: npm run build
