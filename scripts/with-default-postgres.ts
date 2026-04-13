@@ -1,5 +1,4 @@
 import 'dotenv/config';
-import fs from 'node:fs';
 import { spawn } from 'node:child_process';
 import EmbeddedPostgres from 'embedded-postgres';
 import postgres from 'postgres';
@@ -7,6 +6,10 @@ import {
   buildEmbeddedPostgresUrl,
   resolveEmbeddedPostgresConfig
 } from '../src/infrastructure/db/runtime-defaults';
+import {
+  hasEmbeddedPostgresVersionFile,
+  resetStaleEmbeddedPostgresDataDir
+} from '../src/infrastructure/db/embedded-postgres-data-dir';
 import {
   applyRuntimeMigrations,
   shouldRunRuntimeMigrations
@@ -82,14 +85,19 @@ async function startEmbeddedPostgres() {
     postgresFlags: ['-c', `listen_addresses=${config.host}`]
   });
 
-  const versionFile = `${config.dataDir}/PG_VERSION`;
-  if (!fs.existsSync(versionFile)) {
+  if (!hasEmbeddedPostgresVersionFile(config.dataDir)) {
     try {
       await instance.initialise();
     } catch (error) {
-      if (!fs.existsSync(versionFile)) {
+      if (hasEmbeddedPostgresVersionFile(config.dataDir)) {
         throw error;
       }
+
+      console.warn(
+        `[runtime] Embedded Postgres data dir ${config.dataDir} is incomplete; resetting and retrying init`
+      );
+      resetStaleEmbeddedPostgresDataDir(config.dataDir);
+      await instance.initialise();
     }
   }
 
