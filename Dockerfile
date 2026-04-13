@@ -55,4 +55,4 @@ COPY --chmod=755 scripts/docker-entrypoint.sh ./scripts/docker-entrypoint.sh
 EXPOSE ${PORT}
 
 ENTRYPOINT ["./scripts/docker-entrypoint.sh"]
-CMD ["sh", "-lc", "npm run db:migrate && npm run start"]
+CMD ["npm", "run", "start"]

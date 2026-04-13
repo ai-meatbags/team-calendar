@@ -31,7 +31,7 @@ services:
       SMTP_PASS: ${SMTP_PASS:-}
       SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-}
       SMTP_FROM_NAME: ${SMTP_FROM_NAME:-Team Calendar}
-    command: ["sh", "-lc", "npm run db:migrate && npm run start"]
+    command: ["npm", "run", "start"]
     healthcheck:
       test:
         [
