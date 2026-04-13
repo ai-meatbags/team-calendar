@@ -10,13 +10,10 @@
 1. Copy `.env.example` to `.env`
 2. Fill Google OAuth credentials, `NEXTAUTH_SECRET` and `TOKEN_ENC_KEY`
 3. Install dependencies: `npm install`
-4. Generate and apply migrations:
-   - `npm run db:gen`
-   - `npm run db:migrate`
-5. Start the app:
+4. Start the app:
    - `npm run dev`
 
-If `DATABASE_URL` is not set, the npm runtime scripts start embedded Postgres automatically and use a local persistent data dir in `data/postgres`.
+If `DATABASE_URL` is not set, the npm runtime scripts start embedded Postgres automatically, apply migrations during app startup, and use a local persistent data dir in `data/postgres`.
 
 Open `http://localhost:3000`.
 
@@ -55,6 +52,7 @@ docker compose -f compose.external-postgres.yaml up -d --build
 Notes:
 - embedded mode stores database files in the named volume `team-calendar-embedded-data`
 - external mode does not create a database container and fails fast if `DATABASE_URL` is missing
+- the app applies runtime migrations during startup; compose does not run a separate migration command
 - compose files use the same embedded Postgres and port defaults as `.env.example`; deployment env still must define `NEXTAUTH_URL`, `NEXTAUTH_SECRET` and `TOKEN_ENC_KEY`
 - `APP_BASE_URL` is optional and only needed when same-origin checks must allow multiple public origins
 - container-only paths are fixed inside the compose files; deployment env should only provide runtime values such as ports, URLs, secrets and OAuth credentials
