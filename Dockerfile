@@ -28,7 +28,10 @@ ENV APP_HOME=${APP_HOME}
 ENV PORT=${PORT}
 WORKDIR ${APP_HOME}
 
-RUN groupadd --system --gid 1001 teamcal \
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends gosu \
+  && rm -rf /var/lib/apt/lists/* \
+  && groupadd --system --gid 1001 teamcal \
   && useradd --system --uid 1001 --gid 1001 --create-home --home-dir /home/teamcal teamcal \
   && mkdir -p "${APP_HOME}" \
   && chown -R teamcal:teamcal "${APP_HOME}"
@@ -41,8 +44,9 @@ COPY --from=build ${APP_HOME}/next.config.mjs ./next.config.mjs
 COPY --from=build ${APP_HOME}/tsconfig.json ./tsconfig.json
 COPY --from=build ${APP_HOME}/scripts ./scripts
 COPY --from=build ${APP_HOME}/src ./src
+COPY --chmod=755 scripts/docker-entrypoint.sh ./scripts/docker-entrypoint.sh
 
-USER teamcal
 EXPOSE ${PORT}
 
-CMD ["npm", "run", "start"]
+ENTRYPOINT ["./scripts/docker-entrypoint.sh"]
+CMD ["sh", "-lc", "npm run db:migrate && npm run start"]
