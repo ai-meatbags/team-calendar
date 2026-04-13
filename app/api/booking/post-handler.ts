@@ -21,7 +21,7 @@ export type BookingRouteDeps = {
   isSameOriginRequest: typeof isSameOriginRequest;
   logger: typeof logger;
   sendBookingNotifications: typeof sendBookingNotifications;
-  sendBookingWebhook: (params: { teamId: string; shareId: string; payload: unknown }) => Promise<void>;
+  sendTeamBookingWebhooks: (params: { teamId: string; shareId: string; payload: unknown }) => Promise<void>;
 };
 
 const TIME_ZONE = 'Europe/Moscow';
@@ -269,7 +269,7 @@ export function createBookingPostHandler(deps: BookingRouteDeps) {
       }
 
       try {
-        await deps.sendBookingWebhook({
+        await deps.sendTeamBookingWebhooks({
           teamId: String(team.id),
           shareId,
           payload

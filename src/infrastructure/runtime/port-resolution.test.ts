@@ -7,7 +7,6 @@ test('rewriteLocalAppUrls updates localhost-based URLs when port changes', () =>
   const result = rewriteLocalAppUrls(
     {
       NEXTAUTH_URL: 'http://localhost:3000',
-      GOOGLE_REDIRECT_URI: 'http://localhost:3000/auth/google/callback',
       APP_BASE_URL: 'http://localhost:3000, http://127.0.0.1:3000, https://example.com'
     },
     3000,
@@ -15,7 +14,6 @@ test('rewriteLocalAppUrls updates localhost-based URLs when port changes', () =>
   );
 
   assert.equal(result.NEXTAUTH_URL, 'http://localhost:3001/');
-  assert.equal(result.GOOGLE_REDIRECT_URI, 'http://localhost:3001/auth/google/callback');
   assert.equal(
     result.APP_BASE_URL,
     'http://localhost:3001/,http://127.0.0.1:3001/,https://example.com'

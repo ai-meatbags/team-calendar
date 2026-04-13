@@ -24,7 +24,7 @@ export const POST = createBookingPostHandler({
   isSameOriginRequest,
   logger,
   sendBookingNotifications,
-  sendBookingWebhook: ({ teamId, shareId, payload }) =>
+  sendTeamBookingWebhooks: ({ teamId, shareId, payload }) =>
     sendTeamBookingWebhooks(
       {
         createDbClient: () => getServerRuntime().dbClient,

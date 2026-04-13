@@ -55,8 +55,10 @@ docker compose -f compose.external-postgres.yaml up -d --build
 Notes:
 - embedded mode stores database files in the named volume `team-calendar-embedded-data`
 - external mode does not create a database container and fails fast if `DATABASE_URL` is missing
-- compose files no longer contain URL/path defaults; deployment env must define `PORT`, `APP_BASE_URL`, `NEXTAUTH_URL` and other required values explicitly
+- compose files use the same embedded Postgres and port defaults as `.env.example`; deployment env still must define `NEXTAUTH_URL`, `NEXTAUTH_SECRET` and `TOKEN_ENC_KEY`
+- `APP_BASE_URL` is optional and only needed when same-origin checks must allow multiple public origins
 - container-only paths are fixed inside the compose files; deployment env should only provide runtime values such as ports, URLs, secrets and OAuth credentials
+- team-scoped booking webhook delivery is controlled by `BOOKING_WEBHOOK_DELIVERY_ENABLED`; legacy global booking webhook envs are no longer used
 - both deploy files require `NEXTAUTH_SECRET` and `TOKEN_ENC_KEY`; external mode also requires `DATABASE_URL`
 
 ## Database commands

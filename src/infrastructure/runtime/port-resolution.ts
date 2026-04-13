@@ -55,10 +55,6 @@ export function rewriteLocalAppUrls(env: NodeJS.ProcessEnv, fromPort: number, to
     nextEnv.NEXTAUTH_URL = rewriteLocalUrl(nextEnv.NEXTAUTH_URL, fromPort, toPort);
   }
 
-  if (nextEnv.GOOGLE_REDIRECT_URI) {
-    nextEnv.GOOGLE_REDIRECT_URI = rewriteLocalUrl(nextEnv.GOOGLE_REDIRECT_URI, fromPort, toPort);
-  }
-
   if (nextEnv.APP_BASE_URL) {
     nextEnv.APP_BASE_URL = nextEnv.APP_BASE_URL.split(',')
       .map((value) => rewriteLocalUrl(value.trim(), fromPort, toPort))

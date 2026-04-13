@@ -39,11 +39,7 @@ function resolveLocalUrlPort(rawValue: string | undefined) {
 
 function resolvePreferredAppPort(env: NodeJS.ProcessEnv) {
   const appBaseUrls = env.APP_BASE_URL?.split(',').map((value) => value.trim()) ?? [];
-  const candidates = [
-    env.NEXTAUTH_URL,
-    env.GOOGLE_REDIRECT_URI,
-    ...appBaseUrls
-  ];
+  const candidates = [env.NEXTAUTH_URL, ...appBaseUrls];
 
   for (const candidate of candidates) {
     const resolvedPort = resolveLocalUrlPort(candidate);

@@ -65,21 +65,3 @@ export async function sendBookingNotifications(input: SendBookingNotificationsIn
     });
   }
 }
-
-export async function sendBookingWebhook(payload: unknown) {
-  const url = process.env.BOOKING_WEBHOOK_URL;
-  const token = process.env.BOOKING_TOKEN;
-  if (!url || !token) {
-    return;
-  }
-
-  await fetch(url, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      authorization: token,
-      booking_token: token
-    },
-    body: JSON.stringify(payload)
-  });
-}

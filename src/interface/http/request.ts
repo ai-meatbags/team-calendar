@@ -17,7 +17,7 @@ export function isSameOriginRequest(request: NextRequest) {
 
   try {
     const sourceOrigin = new URL(source).origin;
-    const appBaseUrl = process.env.APP_BASE_URL;
+    const appBaseUrl = process.env.APP_BASE_URL || process.env.NEXTAUTH_URL;
     if (!appBaseUrl) return false;
     const allowedOrigins = String(appBaseUrl)
       .split(',')

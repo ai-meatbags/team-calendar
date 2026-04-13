@@ -126,7 +126,7 @@ test('POST /api/booking returns 429 when rate limit rejects request', async () =
     isSameOriginRequest: () => true,
     logger: { warn: () => undefined } as any,
     sendBookingNotifications: async () => undefined,
-    sendBookingWebhook: async () => undefined
+    sendTeamBookingWebhooks: async () => undefined
   });
 
   const request = new NextRequest('http://localhost/api/booking', {
@@ -163,7 +163,7 @@ test('POST /api/booking keeps success for best-effort side effects and deduplica
       sendBookingNotifications: async () => {
         throw new Error('SMTP unavailable');
       },
-      sendBookingWebhook: async ({ payload }) => {
+      sendTeamBookingWebhooks: async ({ payload }) => {
         sentPayloads.push(payload);
         throw new Error('Webhook unavailable');
       }
@@ -221,7 +221,7 @@ test('POST /api/booking resolves single-member mode and uses session email for a
       isSameOriginRequest: () => true,
       logger: { warn: () => undefined } as any,
       sendBookingNotifications: async () => undefined,
-      sendBookingWebhook: async ({ payload }) => {
+      sendTeamBookingWebhooks: async ({ payload }) => {
         sentPayloads.push(payload);
       }
     });
@@ -278,7 +278,7 @@ test('POST /api/booking fans out only to active team webhooks and stores deliver
       isSameOriginRequest: () => true,
       logger: { info: () => undefined, warn: () => undefined, error: () => undefined } as any,
       sendBookingNotifications: async () => undefined,
-      sendBookingWebhook: ({ teamId, shareId, payload }) =>
+      sendTeamBookingWebhooks: ({ teamId, shareId, payload }) =>
         sendTeamBookingWebhooks(
           {
             createDbClient,
@@ -405,7 +405,7 @@ test('POST /api/booking skips team webhook delivery when kill switch is off', as
       isSameOriginRequest: () => true,
       logger: { info: () => undefined, warn: () => undefined, error: () => undefined } as any,
       sendBookingNotifications: async () => undefined,
-      sendBookingWebhook: ({ teamId, shareId, payload }) =>
+      sendTeamBookingWebhooks: ({ teamId, shareId, payload }) =>
         sendTeamBookingWebhooks(
           {
             createDbClient,
