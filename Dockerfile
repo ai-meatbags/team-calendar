@@ -26,10 +26,14 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV APP_HOME=${APP_HOME}
 ENV PORT=${PORT}
+ENV LANG=en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8
 WORKDIR ${APP_HOME}
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends gosu \
+  && apt-get install -y --no-install-recommends gosu locales \
+  && sed -i '/^# *en_US.UTF-8 UTF-8/s/^# *//' /etc/locale.gen \
+  && locale-gen \
   && rm -rf /var/lib/apt/lists/* \
   && groupadd --system --gid 1001 teamcal \
   && useradd --system --uid 1001 --gid 1001 --create-home --home-dir /home/teamcal teamcal \
