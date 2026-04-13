@@ -356,11 +356,27 @@ test('POST /api/teams/:shareId/integrations/webhooks rejects duplicate target ur
   await insertTeamWebhookSeedData(fixture.db);
 
   try {
+    const prepareHandler = createTeamWebhooksPreparePostHandler(createTeamWebhookRouteDeps());
+    const prepareRequest = new NextRequest(
+      'http://localhost/api/teams/share-1/integrations/webhooks/prepare',
+      {
+        method: 'POST',
+        headers: { origin: 'http://localhost:3000' }
+      }
+    );
+    const prepareResponse = await prepareHandler(prepareRequest, {
+      params: Promise.resolve({ shareId: 'share-1' })
+    });
+    const preparePayload = await prepareResponse.json();
+
     const handler = createTeamWebhooksPostHandler(createTeamWebhookRouteDeps());
     const request = new NextRequest('http://localhost/api/teams/share-1/integrations/webhooks', {
       method: 'POST',
       headers: { origin: 'http://localhost:3000', 'content-type': 'application/json' },
-      body: JSON.stringify({ targetUrl: 'https://hooks.example.com/one' })
+      body: JSON.stringify({
+        targetUrl: 'https://hooks.example.com/one',
+        provisioningToken: preparePayload.provisioning.provisioningToken
+      })
     });
     const response = await handler(request, {
       params: Promise.resolve({ shareId: 'share-1' })
