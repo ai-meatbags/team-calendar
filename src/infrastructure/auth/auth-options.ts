@@ -1,8 +1,10 @@
 import NextAuth, { type NextAuthConfig } from 'next-auth';
+import { and, eq } from 'drizzle-orm';
 import Google from 'next-auth/providers/google';
 import { schema } from '@/infrastructure/db/schema';
 import { createEncryptedDrizzleAdapter } from './encrypted-drizzle-adapter';
 import { getServerRuntime } from '@/composition/server-runtime';
+import { resolveGoogleAccountState } from './google-account-state';
 
 type AuthKit = ReturnType<typeof NextAuth>;
 
@@ -49,6 +51,47 @@ function createAuthConfig(): NextAuthConfig {
           (session.user as any).id = user.id;
         }
         return session;
+      }
+    },
+    events: {
+      async signIn({ user, account }) {
+        if (!account || account.provider !== 'google' || !user?.id) {
+          return;
+        }
+
+        const existingAccounts = await runtime.dbClient.db
+          .select()
+          .from(schema.accounts)
+          .where(
+            and(
+              eq(schema.accounts.provider, account.provider),
+              eq(schema.accounts.providerAccountId, account.providerAccountId)
+            )
+          )
+          .limit(1);
+
+        const existingAccount = existingAccounts[0] || null;
+        const timestamp = new Date().toISOString();
+        const { encryptedRefreshToken, authStatus, authStatusReason } = resolveGoogleAccountState({
+          account,
+          storedRefreshToken: existingAccount?.refreshToken || null,
+          tokenVault: runtime.tokenVault
+        });
+
+        await runtime.dbClient.db
+          .update(schema.accounts)
+          .set({
+            refreshToken: encryptedRefreshToken,
+            authStatus,
+            authStatusUpdatedAt: timestamp,
+            authStatusReason
+          })
+          .where(
+            and(
+              eq(schema.accounts.provider, account.provider),
+              eq(schema.accounts.providerAccountId, account.providerAccountId)
+            )
+          );
       }
     }
   };

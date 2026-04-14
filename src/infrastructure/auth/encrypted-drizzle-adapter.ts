@@ -4,13 +4,10 @@ import type { Adapter } from 'next-auth/adapters';
 import type { TokenVaultPort } from '@/ports/security';
 import { buildDefaultSlotRuleSettingsInsert } from '@/application/usecases/slot-rules-settings';
 import { logger } from '@/infrastructure/logging/logger';
+import { readRefreshToken, resolveGoogleAccountState } from './google-account-state';
 
 type AdapterFactory = (db: unknown, schema: unknown) => Adapter;
 type AuthAccountInput = Record<string, any>;
-
-function isString(value: unknown): value is string {
-  return typeof value === 'string' && value.length > 0;
-}
 
 function nowIso() {
   return new Date().toISOString();
@@ -25,9 +22,6 @@ function pickFirstDefined<T>(...values: Array<T | undefined>): T | undefined {
   return undefined;
 }
 
-function readRefreshToken(account: AuthAccountInput) {
-  return pickFirstDefined(account.refresh_token, account.refreshToken);
-}
 
 function mapAccountForSchema(account: AuthAccountInput, encryptedRefreshToken: string | null) {
   return {
@@ -103,27 +97,24 @@ export function createEncryptedDrizzleAdapter(
         throw new Error('Adapter does not implement linkAccount');
       }
       const timestamp = nowIso();
+      let storedRefreshToken: string | null = null;
 
-      const incomingRefreshToken = readRefreshToken(account);
-      const hasIncomingRefreshToken = isString(incomingRefreshToken);
-      let refreshToken = hasIncomingRefreshToken ? incomingRefreshToken : null;
-      let reusedStoredRefreshToken = false;
-
-      if (!refreshToken && typeof base.getAccount === 'function') {
+      if (typeof base.getAccount === 'function') {
         const existing = await base.getAccount(account.providerAccountId, account.provider);
-        const existingRefreshToken =
-          existing && typeof existing === 'object' ? readRefreshToken(existing as AuthAccountInput) : undefined;
-        if (isString(existingRefreshToken)) {
-          refreshToken = existingRefreshToken;
-          reusedStoredRefreshToken = true;
-        }
+        storedRefreshToken =
+          existing && typeof existing === 'object' ? readRefreshToken(existing as AuthAccountInput) || null : null;
       }
-
-      const encryptedRefreshToken = refreshToken
-        ? tokenVault.isEncrypted(refreshToken)
-          ? refreshToken
-          : tokenVault.encrypt(refreshToken)
-        : null;
+      const {
+        hasIncomingRefreshToken,
+        reusedStoredRefreshToken,
+        encryptedRefreshToken,
+        authStatus,
+        authStatusReason
+      } = resolveGoogleAccountState({
+        account,
+        storedRefreshToken,
+        tokenVault
+      });
 
       logger.info('Auth linkAccount token state', {
         provider: account.provider,
@@ -135,9 +126,9 @@ export function createEncryptedDrizzleAdapter(
 
       const linkedAccount = await originalLinkAccount({
         ...mapAccountForSchema(account, encryptedRefreshToken),
-        authStatus: encryptedRefreshToken ? 'active' : 'reauth_required',
+        authStatus,
         authStatusUpdatedAt: timestamp,
-        authStatusReason: encryptedRefreshToken ? null : 'missing_refresh_token'
+        authStatusReason
       });
 
       if (!encryptedRefreshToken) {
