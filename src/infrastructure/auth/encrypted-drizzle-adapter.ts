@@ -102,6 +102,7 @@ export function createEncryptedDrizzleAdapter(
       if (!originalLinkAccount) {
         throw new Error('Adapter does not implement linkAccount');
       }
+      const timestamp = nowIso();
 
       const incomingRefreshToken = readRefreshToken(account);
       const hasIncomingRefreshToken = isString(incomingRefreshToken);
@@ -133,7 +134,10 @@ export function createEncryptedDrizzleAdapter(
       });
 
       const linkedAccount = await originalLinkAccount({
-        ...mapAccountForSchema(account, encryptedRefreshToken)
+        ...mapAccountForSchema(account, encryptedRefreshToken),
+        authStatus: encryptedRefreshToken ? 'active' : 'reauth_required',
+        authStatusUpdatedAt: timestamp,
+        authStatusReason: encryptedRefreshToken ? null : 'missing_refresh_token'
       });
 
       if (!encryptedRefreshToken) {

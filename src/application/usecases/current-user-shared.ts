@@ -2,6 +2,7 @@ import { and, eq } from 'drizzle-orm';
 import type { DbClientProvider } from '@/ports/db';
 import {
   currentUserRecoveryRequiredError,
+  type GoogleAuthRecoveryReason,
   internalError,
   isGoogleReauthRequiredError,
   isGoogleTransientFailureError
@@ -52,7 +53,7 @@ export async function markCurrentUserAccountForRecovery(
   createDbClient: DbClientFactory,
   userId: string,
   sessionToken: string | null | undefined,
-  reason: 'missing_refresh_token' | 'oauth_revoked' | 'scope_lost'
+  reason: GoogleAuthRecoveryReason
 ): Promise<never> {
   const { db, schema } = getDbHandles(createDbClient);
   const nowIso = new Date().toISOString();
@@ -71,6 +72,36 @@ export async function markCurrentUserAccountForRecovery(
   }
 
   throw currentUserRecoveryRequiredError(reason);
+}
+
+function normalizeRecoveryReason(value: unknown): GoogleAuthRecoveryReason {
+  if (value === 'oauth_revoked' || value === 'scope_lost') {
+    return value;
+  }
+
+  return 'missing_refresh_token';
+}
+
+export async function enforceCurrentUserAccountRecoveryIfNeeded(
+  createDbClient: DbClientFactory,
+  userId: string,
+  sessionToken?: string | null
+) {
+  const account = await findGoogleAccountByUserId(createDbClient, userId);
+  if (!account) {
+    return;
+  }
+
+  if (account.authStatus !== 'reauth_required') {
+    return;
+  }
+
+  await markCurrentUserAccountForRecovery(
+    createDbClient,
+    userId,
+    sessionToken,
+    normalizeRecoveryReason(account.authStatusReason)
+  );
 }
 
 export async function getCalendarList(params: {

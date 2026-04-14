@@ -3,6 +3,7 @@ export { getCurrentUserById } from './get-current-user-by-id';
 export { getCurrentUserCalendarSettings } from './get-current-user-calendar-settings';
 export { patchCurrentUserCalendarSettings } from './patch-current-user-calendar-settings';
 export { updateCurrentUserName } from './update-current-user-name';
+export { enforceCurrentUserAccountRecoveryIfNeeded } from './current-user-shared';
 export type {
   CalendarListItem,
   CurrentUserDeps,

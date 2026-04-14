@@ -94,6 +94,38 @@ test('PATCH /api/me validates user name and keeps row unchanged', async () => {
   }
 });
 
+test('GET /api/me enters hidden recovery mode when google account is already marked for reauth', async () => {
+  const fixture = await createPgRouteFixture('teamcal-me-route');
+  await insertMeSeedData(fixture.db);
+  await fixture.db
+    .prepare('UPDATE accounts SET auth_status = ?, auth_status_reason = ? WHERE user_id = ?')
+    .run('reauth_required', 'missing_refresh_token', 'user-1');
+
+  try {
+    const handler = createMeGetHandler(createMeRouteDeps());
+    const request = new NextRequest('http://localhost/api/me', {
+      method: 'GET',
+      headers: {
+        cookie: 'authjs.session-token=sess-1'
+      }
+    });
+    const response = await handler(request);
+    const payload = await response.json();
+
+    assert.equal(response.status, 401);
+    assert.equal(payload.error, 'Need to confirm Google Calendar access again.');
+    assert.equal(payload.code, 'reauth_required');
+    assert.match(String(response.headers.get('set-cookie') || ''), new RegExp(`${GOOGLE_AUTH_RECOVERY_COOKIE_NAME}=1`));
+
+    const sessionRow = await fixture.db
+      .prepare('SELECT session_token FROM sessions WHERE session_token = ?')
+      .get<{ session_token: string }>('sess-1');
+    assert.equal(sessionRow, undefined);
+  } finally {
+    await fixture.cleanup();
+  }
+});
+
 test('PATCH /api/me updates current user name with public payload parity', async () => {
   const fixture = await createPgRouteFixture('teamcal-me-route');
   await insertMeSeedData(fixture.db);

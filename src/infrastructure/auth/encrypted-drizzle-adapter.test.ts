@@ -41,6 +41,35 @@ test('linkAccount encrypts plaintext refresh_token', async () => {
   assert.equal((result as any).refreshToken, 'enc:plain-refresh-token');
 });
 
+test('linkAccount marks google account for recovery when no refresh token is available', async () => {
+  const linkedAccounts: any[] = [];
+  const baseAdapter: Adapter = {
+    async linkAccount(account) {
+      linkedAccounts.push(account);
+      return account as any;
+    }
+  };
+  const adapter = createEncryptedDrizzleAdapter(
+    {},
+    {},
+    createTokenVaultMock(),
+    () => baseAdapter
+  );
+
+  await adapter.linkAccount?.({
+    provider: 'google',
+    providerAccountId: 'google-account',
+    userId: 'user-1',
+    type: 'oauth'
+  } as any);
+
+  assert.equal(linkedAccounts.length, 1);
+  assert.equal(linkedAccounts[0].refreshToken, null);
+  assert.equal(linkedAccounts[0].authStatus, 'reauth_required');
+  assert.equal(linkedAccounts[0].authStatusReason, 'missing_refresh_token');
+  assert.equal(typeof linkedAccounts[0].authStatusUpdatedAt, 'string');
+});
+
 test('createUser adds createdAt and updatedAt for auth schema', async () => {
   const createdUsers: any[] = [];
   const baseAdapter: Adapter = {
@@ -165,6 +194,8 @@ test('linkAccount preserves previous encrypted refresh_token when update payload
 
   assert.equal(linkedAccounts.length, 1);
   assert.equal(linkedAccounts[0].refreshToken, 'enc:stored-token');
+  assert.equal(linkedAccounts[0].authStatus, 'active');
+  assert.equal(linkedAccounts[0].authStatusReason, null);
 });
 
 test('linkAccount does not re-encrypt already encrypted refresh_token', async () => {
@@ -230,7 +261,12 @@ test('linkAccount maps Auth.js snake_case account fields to schema camelCase fie
   } as any);
 
   assert.equal(linkedAccounts.length, 1);
-  assert.deepEqual(linkedAccounts[0], {
+  assert.deepEqual(
+    {
+      ...linkedAccounts[0],
+      authStatusUpdatedAt: typeof linkedAccounts[0].authStatusUpdatedAt,
+    },
+    {
     userId: 'user-1',
     type: 'oidc',
     provider: 'google',
@@ -243,7 +279,8 @@ test('linkAccount maps Auth.js snake_case account fields to schema camelCase fie
     idToken: 'plain-id-token',
     sessionState: 'state-1',
     authStatus: 'active',
-    authStatusUpdatedAt: undefined,
-    authStatusReason: undefined
-  });
+      authStatusUpdatedAt: 'string',
+      authStatusReason: null
+    }
+  );
 });
