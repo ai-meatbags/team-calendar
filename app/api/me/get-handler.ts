@@ -28,14 +28,14 @@ function toPublicUser(user: any, session: any) {
 }
 
 export function createMeGetHandler(deps: MeRouteDeps) {
-  return async function GET(request?: NextRequest) {
+  return async function GET(request: NextRequest) {
     try {
       const session = await deps.auth();
       const userId = String(session?.user?.id || '').trim();
       if (!userId) {
         return unauthorized();
       }
-      const sessionToken = resolveAuthSessionToken(request?.headers.get('cookie'));
+      const sessionToken = resolveAuthSessionToken(request.headers.get('cookie'));
       await enforceCurrentUserAccountRecoveryIfNeeded(deps.createDbClient, userId, sessionToken);
 
       const user = await getCurrentUserById(userId, {

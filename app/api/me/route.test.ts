@@ -404,7 +404,14 @@ test('GET /api/me falls back to session picture when db image is empty', async (
 
   try {
     const handler = createMeGetHandler(createMeRouteDeps());
-    const response = await handler();
+    const response = await handler(
+      new NextRequest('http://localhost/api/me', {
+        method: 'GET',
+        headers: {
+          cookie: 'authjs.session-token=sess-1'
+        }
+      })
+    );
     const payload = await response.json();
 
     assert.equal(response.status, 200);
@@ -423,7 +430,14 @@ test('GET /api/me rewrites Google-hosted picture to same-origin avatar proxy', a
 
   try {
     const handler = createMeGetHandler(createMeRouteDeps());
-    const response = await handler();
+    const response = await handler(
+      new NextRequest('http://localhost/api/me', {
+        method: 'GET',
+        headers: {
+          cookie: 'authjs.session-token=sess-1'
+        }
+      })
+    );
     const payload = await response.json();
 
     assert.equal(response.status, 200);
@@ -453,7 +467,14 @@ test('GET /api/me resolves user by session id even when session email differs', 
           }) as any
       })
     );
-    const response = await handler();
+    const response = await handler(
+      new NextRequest('http://localhost/api/me', {
+        method: 'GET',
+        headers: {
+          cookie: 'authjs.session-token=sess-1'
+        }
+      })
+    );
     const payload = await response.json();
 
     assert.equal(response.status, 200);
