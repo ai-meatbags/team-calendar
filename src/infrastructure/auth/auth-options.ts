@@ -58,8 +58,8 @@ function createAuthConfig(): NextAuthConfig {
         if (!account || account.provider !== 'google' || !user?.id) {
           return;
         }
-
-        const existingAccounts = await runtime.dbClient.db
+        const db = runtime.dbClient.db as any;
+        const existingAccounts = await db
           .select()
           .from(schema.accounts)
           .where(
@@ -77,8 +77,7 @@ function createAuthConfig(): NextAuthConfig {
           storedRefreshToken: existingAccount?.refreshToken || null,
           tokenVault: runtime.tokenVault
         });
-
-        await runtime.dbClient.db
+        await db
           .update(schema.accounts)
           .set({
             refreshToken: encryptedRefreshToken,
