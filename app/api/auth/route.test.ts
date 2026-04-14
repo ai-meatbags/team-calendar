@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { NextRequest } from 'next/server';
 import { GET as popupCompleteGet } from '../../auth/popup-complete/route';
+import { createAuthGoogleEntryHandler } from '../../auth/google/handler';
 import { createAuthGoogleHandler } from './google/handler';
 import { createAuthLogoutHandler, resolveRedirectPath } from './logout/handler';
 import { GOOGLE_AUTH_RECOVERY_COOKIE_NAME } from '@/infrastructure/auth/google-auth-flow';
@@ -85,6 +86,22 @@ test('GET /api/auth/google enables hidden recovery mode when recovery cookie is 
       }
     }
   ]);
+});
+
+test('GET /auth/google builds redirect from NEXTAUTH_URL instead of request origin', async () => {
+  const handler = createAuthGoogleEntryHandler({
+    nextauthUrl: 'https://team-calendar.test'
+  });
+
+  const response = await handler(
+    new Request('https://localhost:3000/auth/google?popup=1&next=%2Fteams')
+  );
+
+  assert.equal(response.status, 307);
+  assert.equal(
+    response.headers.get('location'),
+    'https://team-calendar.test/api/auth/google?next=%2Fteams&popup=1'
+  );
 });
 
 test('GET /auth/popup-complete returns popup bridge html', async () => {
