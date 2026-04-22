@@ -1,6 +1,7 @@
 import NextAuth, { type NextAuthConfig } from 'next-auth';
 import { and, eq } from 'drizzle-orm';
 import Google from 'next-auth/providers/google';
+import type { TokenVaultPort } from '@/ports/security';
 import { schema } from '@/infrastructure/db/schema';
 import { createEncryptedDrizzleAdapter } from './encrypted-drizzle-adapter';
 import { getServerRuntime } from '@/composition/server-runtime';
@@ -17,6 +18,72 @@ const authSchema = {
 };
 
 let cachedAuthKit: AuthKit | null = null;
+
+type GoogleSignInEventRuntime = {
+  dbClient: {
+    db: any;
+  };
+  tokenVault: TokenVaultPort;
+};
+
+type GoogleSignInEventParams = {
+  user?: {
+    id?: string | null;
+  } | null;
+  account?: {
+    provider?: string | null;
+    providerAccountId?: string | null;
+    refresh_token?: unknown;
+    refreshToken?: unknown;
+  } | null;
+};
+
+export function createGoogleAccountSignInHandler(runtime: GoogleSignInEventRuntime) {
+  return async function handleGoogleAccountSignIn({ user, account }: GoogleSignInEventParams) {
+    if (
+      !account ||
+      account.provider !== 'google' ||
+      !user?.id ||
+      !account.providerAccountId
+    ) {
+      return;
+    }
+
+    const db = runtime.dbClient.db as any;
+    const existingAccounts = await db
+      .select()
+      .from(schema.accounts)
+      .where(
+        and(
+          eq(schema.accounts.provider, account.provider),
+          eq(schema.accounts.providerAccountId, account.providerAccountId)
+        )
+      )
+      .limit(1);
+
+    const existingAccount = existingAccounts[0] || null;
+    const timestamp = new Date().toISOString();
+    const { encryptedRefreshToken, authStatus, authStatusReason } = resolveGoogleAccountState({
+      account,
+      storedRefreshToken: existingAccount?.refreshToken || null,
+      tokenVault: runtime.tokenVault
+    });
+    await db
+      .update(schema.accounts)
+      .set({
+        refreshToken: encryptedRefreshToken,
+        authStatus,
+        authStatusUpdatedAt: timestamp,
+        authStatusReason
+      })
+      .where(
+        and(
+          eq(schema.accounts.provider, account.provider),
+          eq(schema.accounts.providerAccountId, account.providerAccountId)
+        )
+      );
+  };
+}
 
 function createAuthConfig(): NextAuthConfig {
   const runtime = getServerRuntime();
@@ -54,44 +121,7 @@ function createAuthConfig(): NextAuthConfig {
       }
     },
     events: {
-      async signIn({ user, account }) {
-        if (!account || account.provider !== 'google' || !user?.id) {
-          return;
-        }
-        const db = runtime.dbClient.db as any;
-        const existingAccounts = await db
-          .select()
-          .from(schema.accounts)
-          .where(
-            and(
-              eq(schema.accounts.provider, account.provider),
-              eq(schema.accounts.providerAccountId, account.providerAccountId)
-            )
-          )
-          .limit(1);
-
-        const existingAccount = existingAccounts[0] || null;
-        const timestamp = new Date().toISOString();
-        const { encryptedRefreshToken, authStatus, authStatusReason } = resolveGoogleAccountState({
-          account,
-          storedRefreshToken: existingAccount?.refreshToken || null,
-          tokenVault: runtime.tokenVault
-        });
-        await db
-          .update(schema.accounts)
-          .set({
-            refreshToken: encryptedRefreshToken,
-            authStatus,
-            authStatusUpdatedAt: timestamp,
-            authStatusReason
-          })
-          .where(
-            and(
-              eq(schema.accounts.provider, account.provider),
-              eq(schema.accounts.providerAccountId, account.providerAccountId)
-            )
-          );
-      }
+      signIn: createGoogleAccountSignInHandler(runtime)
     }
   };
 }
