@@ -69,6 +69,10 @@ Notes:
 - Architecture notes: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 - Release verification: [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md)
 
+## License
+Team Calendar is licensed under the GNU Affero General Public License v3.0 or later (`AGPL-3.0-or-later`).
+See [`LICENSE`](LICENSE).
+
 ## Current source of truth
 - Full runtime cutover: [`tasks/nextjs-cutover/nextjs-cutover.specs.md`](tasks/nextjs-cutover/nextjs-cutover.specs.md)
 - Embedded Postgres migration feature: [`tasks/embedded-postgres-runtime/embedded-postgres-runtime.feature.md`](tasks/embedded-postgres-runtime/embedded-postgres-runtime.feature.md)
