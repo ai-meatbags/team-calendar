@@ -1,0 +1,18 @@
+{
+  "task_key": "TEAMCAL-69",
+  "feature_key": "user-integrations-catalog",
+  "status": "todo",
+  "resolution": "",
+  "current_goal": "Пересобрать team bindings settings и runtime поверх canonical model.",
+  "next_gate": "",
+  "blockers": [],
+  "artifact_paths": {
+    "task_file": "tasks/user-integrations-catalog/TEAMCAL-69.team-bindings-settings-and-runtime.md",
+    "feature_dossier": "tasks/user-integrations-catalog/user-integrations-catalog.feature.md",
+    "testing_artifact": "tasks/user-integrations-catalog/TEAMCAL-69.team-bindings-settings-and-runtime.testing.md",
+    "retro_artifact": "tasks/user-integrations-catalog/TEAMCAL-69.team-bindings-settings-and-runtime.retro.md"
+  },
+  "active_owner": "Codex",
+  "reserved_file_scope": [],
+  "last_updated_at": "2026-04-10 19:20"
+}

@@ -1,0 +1,27 @@
+{
+  "task_key": "TEAMCAL-75",
+  "feature_key": "slot-rules-settings",
+  "status": "done",
+  "resolution": "completed",
+  "current_goal": "Зафиксировать canonical schema и effective resolver для slot rules без UI-level логики",
+  "next_gate": "",
+  "blockers": [],
+  "artifact_paths": {
+    "task_file": "tasks/slot-rules-settings/TEAMCAL-75.canonical-slot-rules-schema-and-resolver.md",
+    "feature_dossier": "tasks/slot-rules-settings/slot-rules-settings.feature.md",
+    "testing_artifact": "",
+    "retro_artifact": ""
+  },
+  "active_owner": "Codex",
+  "reserved_file_scope": [
+    "implementation/src/infrastructure/db/schema.ts",
+    "implementation/src/infrastructure/db/schema-pg/index.ts",
+    "implementation/drizzle",
+    "implementation/src/domain/slot-rules",
+    "implementation/src/application/usecases",
+    "implementation/app/api/me/settings",
+    "implementation/app/api/teams/[shareId]/settings",
+    "implementation/app/api/teams/[shareId]/availability/get-handler.ts"
+  ],
+  "last_updated_at": "2026-04-11 17:05"
+}

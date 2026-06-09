@@ -1,0 +1,23 @@
+{
+  "task_key": "TEAMCAL-72",
+  "feature_key": "slot-week-bands",
+  "status": "in_progress",
+  "resolution": "",
+  "current_goal": "Сделать визуально читаемые week bands и compact sticky headers в списке слотов без скрытия контента и без потери первичности slot cards.",
+  "next_gate": "testing",
+  "blockers": [],
+  "artifact_paths": {
+    "task_file": "tasks/slot-week-bands/TEAMCAL-72.slot-week-bands-and-sticky-week-headers.md",
+    "feature_dossier": "tasks/slot-week-bands/slot-week-bands.feature.md",
+    "testing_artifact": "tasks/slot-week-bands/TEAMCAL-72.slot-week-bands-and-sticky-week-headers.testing.md",
+    "retro_artifact": "tasks/slot-week-bands/TEAMCAL-72.slot-week-bands-and-sticky-week-headers.retro.md"
+  },
+  "active_owner": "Codex",
+  "reserved_file_scope": [
+    "implementation/app/_components/team-page/team-page-client.tsx",
+    "implementation/app/_components/team-page/team-page-utils.ts",
+    "implementation/app/_components/team-page/team-page.test.tsx",
+    "implementation/app/styles/styles.css"
+  ],
+  "last_updated_at": "2026-04-10 19:13"
+}

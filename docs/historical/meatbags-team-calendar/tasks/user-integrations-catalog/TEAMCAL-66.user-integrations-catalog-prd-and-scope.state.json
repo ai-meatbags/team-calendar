@@ -1,0 +1,24 @@
+{
+  "task_key": "TEAMCAL-66",
+  "feature_key": "user-integrations-catalog",
+  "status": "done",
+  "resolution": "completed",
+  "current_goal": "Зафиксировать canonical redesign для user-owned integrations catalog и team enablement, сохранив team-only API tokens и без compatibility burden для provisional team-only model.",
+  "next_gate": "",
+  "blockers": [],
+  "artifact_paths": {
+    "task_file": "tasks/user-integrations-catalog/TEAMCAL-66.user-integrations-catalog-prd-and-scope.md",
+    "feature_dossier": "tasks/user-integrations-catalog/user-integrations-catalog.feature.md",
+    "testing_artifact": "tasks/user-integrations-catalog/TEAMCAL-66.user-integrations-catalog-prd-and-scope.testing.md",
+    "retro_artifact": "tasks/user-integrations-catalog/TEAMCAL-66.user-integrations-catalog-prd-and-scope.retro.md"
+  },
+  "active_owner": "Codex",
+  "reserved_file_scope": [
+    "docs/user-integrations-catalog-prd.md",
+    "tasks/user-integrations-catalog/*",
+    "tasks/team-events-webhook/team-events-webhook.feature.md",
+    "tasks/team-events-webhook/team-events-webhook.state.json",
+    "tasks/team-events-webhook/team-events-webhook.retro.md"
+  ],
+  "last_updated_at": "2026-04-10 19:08"
+}

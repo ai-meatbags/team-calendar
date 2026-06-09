@@ -1,0 +1,18 @@
+{
+  "task_key": "TEAMCAL-70",
+  "feature_key": "user-integrations-catalog",
+  "status": "todo",
+  "resolution": "",
+  "current_goal": "Зафиксировать team-only API token boundary и финальный settings split.",
+  "next_gate": "",
+  "blockers": [],
+  "artifact_paths": {
+    "task_file": "tasks/user-integrations-catalog/TEAMCAL-70.team-api-token-boundary-and-settings-split.md",
+    "feature_dossier": "tasks/user-integrations-catalog/user-integrations-catalog.feature.md",
+    "testing_artifact": "tasks/user-integrations-catalog/TEAMCAL-70.team-api-token-boundary-and-settings-split.testing.md",
+    "retro_artifact": "tasks/user-integrations-catalog/TEAMCAL-70.team-api-token-boundary-and-settings-split.retro.md"
+  },
+  "active_owner": "Codex",
+  "reserved_file_scope": [],
+  "last_updated_at": "2026-04-10 19:20"
+}

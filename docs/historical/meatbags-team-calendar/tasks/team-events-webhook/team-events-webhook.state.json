@@ -1,0 +1,32 @@
+{
+  "feature_key": "team-events-webhook",
+  "stage": "finish",
+  "feature_owner": "Codex",
+  "feature_anchor_issue": {
+    "id": "TEAMCAL-53",
+    "identifier": "TEAMCAL-53",
+    "url": "https://linear.app/meatbags/issue/TEAMCAL-53/feature-anchor-integracii-i-vebhuki-komandy"
+  },
+  "required_task_keys": [
+    "TEAMCAL-31",
+    "TEAMCAL-32",
+    "TEAMCAL-33",
+    "TEAMCAL-54",
+    "TEAMCAL-55",
+    "TEAMCAL-56",
+    "TEAMCAL-57"
+  ],
+  "child_task_keys": [
+    "TEAMCAL-31",
+    "TEAMCAL-32",
+    "TEAMCAL-33",
+    "TEAMCAL-34",
+    "TEAMCAL-35",
+    "TEAMCAL-54",
+    "TEAMCAL-55",
+    "TEAMCAL-56",
+    "TEAMCAL-57"
+  ],
+  "integration_task_key": "TEAMCAL-56",
+  "last_updated_at": "2026-04-10 18:55"
+}

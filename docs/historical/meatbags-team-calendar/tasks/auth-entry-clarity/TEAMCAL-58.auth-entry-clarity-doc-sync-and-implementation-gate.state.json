@@ -1,0 +1,24 @@
+{
+  "task_key": "TEAMCAL-58",
+  "feature_key": "auth-entry-clarity",
+  "status": "done",
+  "resolution": "completed",
+  "current_goal": "Синхронизировать PRD, SDD, implementation plan и task contract по архитектурным правилам для auth-entry-clarity.",
+  "next_gate": "done",
+  "blockers": [],
+  "artifact_paths": {
+    "task_file": "tasks/auth-entry-clarity/TEAMCAL-58.auth-entry-clarity-doc-sync-and-implementation-gate.md",
+    "feature_dossier": "tasks/auth-entry-clarity/auth-entry-clarity.feature.md",
+    "testing_artifact": "tasks/auth-entry-clarity/TEAMCAL-58.auth-entry-clarity-doc-sync-and-implementation-gate.testing.md",
+    "retro_artifact": "tasks/auth-entry-clarity/TEAMCAL-58.auth-entry-clarity-doc-sync-and-implementation-gate.retro.md"
+  },
+  "active_owner": "Codex",
+  "reserved_file_scope": [
+    "tasks/auth-entry-clarity/auth-entry-clarity.feature.md",
+    "tasks/auth-entry-clarity/auth-entry-clarity.prd.md",
+    "tasks/auth-entry-clarity/auth-entry-clarity.specs.md",
+    "tasks/auth-entry-clarity/auth-entry-clarity.plan.md",
+    "tasks/auth-entry-clarity/TEAMCAL-58.auth-entry-clarity-doc-sync-and-implementation-gate.md"
+  ],
+  "last_updated_at": "2026-04-10 15:30"
+}

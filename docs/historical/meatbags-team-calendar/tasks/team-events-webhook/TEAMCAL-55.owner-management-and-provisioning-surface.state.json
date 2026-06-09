@@ -1,0 +1,21 @@
+{
+  "task_key": "TEAMCAL-55",
+  "feature_key": "team-events-webhook",
+  "status": "done",
+  "resolution": "completed",
+  "current_goal": "Пересобрать owner management и secret provisioning surface под JWT-only модель.",
+  "next_gate": "",
+  "blockers": [],
+  "artifact_paths": {
+    "task_file": "tasks/team-events-webhook/TEAMCAL-55.owner-management-and-provisioning-surface.md",
+    "feature_dossier": "tasks/team-events-webhook/team-events-webhook.feature.md",
+    "testing_artifact": "tasks/team-events-webhook/TEAMCAL-55.owner-management-and-provisioning-surface.testing.md",
+    "retro_artifact": "tasks/team-events-webhook/TEAMCAL-55.owner-management-and-provisioning-surface.retro.md"
+  },
+  "active_owner": "Codex",
+  "reserved_file_scope": [
+    "implementation/src/application/usecases/team-webhooks.ts",
+    "implementation/app/api/teams/[shareId]/integrations/webhooks/*"
+  ],
+  "last_updated_at": "2026-04-10 17:50"
+}

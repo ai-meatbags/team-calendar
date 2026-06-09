@@ -1,0 +1,24 @@
+{
+  "task_key": "TEAMCAL-50",
+  "feature_key": "embedded-postgres-runtime",
+  "status": "done",
+  "resolution": "completed",
+  "current_goal": "Embedded Postgres default и pg-only runtime shipped.",
+  "next_gate": "closed",
+  "blockers": [],
+  "artifact_paths": {
+    "task_file": "tasks/embedded-postgres-runtime/TEAMCAL-50.embedded-postgres-bootstrap-and-pg-only-client.md",
+    "feature_dossier": "tasks/embedded-postgres-runtime/embedded-postgres-runtime.feature.md",
+    "testing_artifact": "tasks/embedded-postgres-runtime/TEAMCAL-50.embedded-postgres-bootstrap-and-pg-only-client.testing.md",
+    "retro_artifact": "tasks/embedded-postgres-runtime/TEAMCAL-50.embedded-postgres-bootstrap-and-pg-only-client.retro.md"
+  },
+  "active_owner": "",
+  "reserved_file_scope": [
+    "src/infrastructure/db/*",
+    "src/ports/db.ts",
+    "src/infrastructure/auth/*",
+    "package.json",
+    "drizzle.config.*"
+  ],
+  "last_updated_at": "2026-03-21 01:04"
+}

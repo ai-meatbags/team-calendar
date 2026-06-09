@@ -1,0 +1,18 @@
+{
+  "task_key": "TEAMCAL-68",
+  "feature_key": "user-integrations-catalog",
+  "status": "todo",
+  "resolution": "",
+  "current_goal": "Добавить user-owned integrations catalog в /profile.",
+  "next_gate": "",
+  "blockers": [],
+  "artifact_paths": {
+    "task_file": "tasks/user-integrations-catalog/TEAMCAL-68.profile-integrations-catalog-surface.md",
+    "feature_dossier": "tasks/user-integrations-catalog/user-integrations-catalog.feature.md",
+    "testing_artifact": "tasks/user-integrations-catalog/TEAMCAL-68.profile-integrations-catalog-surface.testing.md",
+    "retro_artifact": "tasks/user-integrations-catalog/TEAMCAL-68.profile-integrations-catalog-surface.retro.md"
+  },
+  "active_owner": "Codex",
+  "reserved_file_scope": [],
+  "last_updated_at": "2026-04-10 19:20"
+}

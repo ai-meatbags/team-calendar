@@ -1,0 +1,24 @@
+{
+  "task_key": "TEAMCAL-79",
+  "feature_key": "team-events-webhook",
+  "status": "done",
+  "resolution": "completed",
+  "current_goal": "Завершено: team-level webhook onboarding переведён на draft provisioning row с row-scoped secret reveal.",
+  "next_gate": "none",
+  "blockers": [],
+  "artifact_paths": {
+    "task_file": "tasks/team-events-webhook/TEAMCAL-79.team-webhook-draft-provisioning-row.md",
+    "feature_dossier": "tasks/team-events-webhook/team-events-webhook.feature.md",
+    "testing_artifact": "tasks/team-events-webhook/TEAMCAL-79.team-webhook-draft-provisioning-row.testing.md",
+    "retro_artifact": "tasks/team-events-webhook/TEAMCAL-79.team-webhook-draft-provisioning-row.retro.md"
+  },
+  "active_owner": "Codex",
+  "reserved_file_scope": [
+    "implementation/app/_components/team-page/*",
+    "implementation/app/api/teams/[shareId]/integrations/webhooks/*",
+    "implementation/src/application/usecases/*",
+    "tasks/team-events-webhook/*",
+    "docs/team-events-webhook-jwt-prd.md"
+  ],
+  "last_updated_at": "2026-04-11 22:55"
+}

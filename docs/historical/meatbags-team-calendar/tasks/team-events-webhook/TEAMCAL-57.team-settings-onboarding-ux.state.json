@@ -1,0 +1,23 @@
+{
+  "task_key": "TEAMCAL-57",
+  "feature_key": "team-events-webhook",
+  "status": "done",
+  "resolution": "completed",
+  "current_goal": "Пересобрать team settings UX вокруг onboarding-first blessed path и shadcn composition.",
+  "next_gate": "",
+  "blockers": [],
+  "artifact_paths": {
+    "task_file": "tasks/team-events-webhook/TEAMCAL-57.team-settings-onboarding-ux.md",
+    "feature_dossier": "tasks/team-events-webhook/team-events-webhook.feature.md",
+    "testing_artifact": "tasks/team-events-webhook/TEAMCAL-57.team-settings-onboarding-ux.testing.md",
+    "retro_artifact": "tasks/team-events-webhook/TEAMCAL-57.team-settings-onboarding-ux.retro.md"
+  },
+  "active_owner": "Codex",
+  "reserved_file_scope": [
+    "implementation/app/_components/team-page/*",
+    "implementation/components.json",
+    "implementation/app/globals.css",
+    "implementation/components/*"
+  ],
+  "last_updated_at": "2026-04-10 18:12"
+}

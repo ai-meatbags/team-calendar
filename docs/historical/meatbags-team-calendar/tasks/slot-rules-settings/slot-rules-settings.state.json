@@ -1,0 +1,22 @@
+{
+  "feature_key": "slot-rules-settings",
+  "stage": "finish",
+  "feature_owner": "Codex",
+  "feature_anchor_issue": {
+    "id": "",
+    "identifier": "",
+    "url": ""
+  },
+  "required_task_keys": [
+    "TEAMCAL-75",
+    "TEAMCAL-76",
+    "TEAMCAL-77"
+  ],
+  "child_task_keys": [
+    "TEAMCAL-75",
+    "TEAMCAL-76",
+    "TEAMCAL-77"
+  ],
+  "integration_task_key": "TEAMCAL-77",
+  "last_updated_at": "2026-04-11 17:05"
+}

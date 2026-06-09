@@ -1,0 +1,25 @@
+{
+  "task_key": "TEAMCAL-76",
+  "feature_key": "slot-rules-settings",
+  "status": "done",
+  "resolution": "completed",
+  "current_goal": "Подключить profile defaults и team personal override surfaces к каноническому slot-rules contract",
+  "next_gate": "",
+  "blockers": [],
+  "artifact_paths": {
+    "task_file": "tasks/slot-rules-settings/TEAMCAL-76.profile-defaults-and-team-personal-settings-surfaces.md",
+    "feature_dossier": "tasks/slot-rules-settings/slot-rules-settings.feature.md",
+    "testing_artifact": "",
+    "retro_artifact": ""
+  },
+  "active_owner": "Codex",
+  "reserved_file_scope": [
+    "implementation/app/(pages)/profile",
+    "implementation/app/_components/profile-*",
+    "implementation/app/api/me/settings",
+    "implementation/app/_components/team-page",
+    "implementation/app/api/teams/[shareId]/settings",
+    "implementation/app/api/teams/[shareId]/team-handler.ts"
+  ],
+  "last_updated_at": "2026-04-11 17:05"
+}

@@ -1,0 +1,23 @@
+{
+  "task_key": "TEAMCAL-52",
+  "feature_key": "embedded-postgres-runtime",
+  "status": "done",
+  "resolution": "completed",
+  "current_goal": "Integration/docs/release gate для pg-only runtime закрыт.",
+  "next_gate": "closed",
+  "blockers": [],
+  "artifact_paths": {
+    "task_file": "tasks/embedded-postgres-runtime/TEAMCAL-52.integration-regression-and-self-hosted-docs.md",
+    "feature_dossier": "tasks/embedded-postgres-runtime/embedded-postgres-runtime.feature.md",
+    "testing_artifact": "tasks/embedded-postgres-runtime/TEAMCAL-52.integration-regression-and-self-hosted-docs.testing.md",
+    "retro_artifact": "tasks/embedded-postgres-runtime/TEAMCAL-52.integration-regression-and-self-hosted-docs.retro.md"
+  },
+  "active_owner": "",
+  "reserved_file_scope": [
+    ".env.example",
+    "README.md",
+    "docs/*",
+    "tasks/embedded-postgres-runtime/*"
+  ],
+  "last_updated_at": "2026-03-21 01:04"
+}

@@ -1,0 +1,18 @@
+{
+  "feature_key": "slot-week-bands",
+  "stage": "implement",
+  "feature_owner": "Codex",
+  "feature_anchor_issue": {
+    "id": "TEAMCAL-71",
+    "identifier": "TEAMCAL-71",
+    "url": "https://linear.app/meatbags/issue/TEAMCAL-71/feature-anchor-week-bands-dlya-vybora-slotov"
+  },
+  "required_task_keys": [
+    "TEAMCAL-72"
+  ],
+  "child_task_keys": [
+    "TEAMCAL-72"
+  ],
+  "integration_task_key": "TEAMCAL-72",
+  "last_updated_at": "2026-04-10 19:13"
+}

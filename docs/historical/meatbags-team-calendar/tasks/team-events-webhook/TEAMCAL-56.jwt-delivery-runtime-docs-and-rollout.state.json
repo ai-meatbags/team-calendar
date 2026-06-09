@@ -1,0 +1,24 @@
+{
+  "task_key": "TEAMCAL-56",
+  "feature_key": "team-events-webhook",
+  "status": "done",
+  "resolution": "completed",
+  "current_goal": "Собрать JWT delivery runtime, docs и rollout gate для blessed path.",
+  "next_gate": "",
+  "blockers": [],
+  "artifact_paths": {
+    "task_file": "tasks/team-events-webhook/TEAMCAL-56.jwt-delivery-runtime-docs-and-rollout.md",
+    "feature_dossier": "tasks/team-events-webhook/team-events-webhook.feature.md",
+    "testing_artifact": "tasks/team-events-webhook/TEAMCAL-56.jwt-delivery-runtime-docs-and-rollout.testing.md",
+    "retro_artifact": "tasks/team-events-webhook/TEAMCAL-56.jwt-delivery-runtime-docs-and-rollout.retro.md"
+  },
+  "active_owner": "Codex",
+  "reserved_file_scope": [
+    "implementation/src/infrastructure/notifications/team-webhook-delivery.ts",
+    "implementation/app/api/booking/*",
+    "implementation/docs/*",
+    "implementation/app/_components/team-page/*.test*",
+    "implementation/app/api/**/*.test.ts"
+  ],
+  "last_updated_at": "2026-04-10 18:28"
+}

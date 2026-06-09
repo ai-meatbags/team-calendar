@@ -1,0 +1,22 @@
+{
+  "task_key": "TEAMCAL-78",
+  "feature_key": "team-events-webhook",
+  "status": "done",
+  "resolution": "completed",
+  "current_goal": "Завершено: team-level секция вебхуков пересобрана в компактный список строк без Audience и технического мусора.",
+  "next_gate": "none",
+  "blockers": [],
+  "artifact_paths": {
+    "task_file": "tasks/team-events-webhook/TEAMCAL-78.team-webhook-compact-list-redesign.md",
+    "feature_dossier": "tasks/team-events-webhook/team-events-webhook.feature.md",
+    "testing_artifact": "tasks/team-events-webhook/TEAMCAL-78.team-webhook-compact-list-redesign.testing.md",
+    "retro_artifact": "tasks/team-events-webhook/TEAMCAL-78.team-webhook-compact-list-redesign.retro.md"
+  },
+  "active_owner": "Codex",
+  "reserved_file_scope": [
+    "implementation/app/_components/team-page/*",
+    "implementation/components/ui/*",
+    "tasks/team-events-webhook/*"
+  ],
+  "last_updated_at": "2026-04-11 20:42"
+}

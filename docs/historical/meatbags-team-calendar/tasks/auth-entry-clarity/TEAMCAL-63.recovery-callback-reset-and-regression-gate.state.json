@@ -1,0 +1,24 @@
+{
+  "task_key": "TEAMCAL-63",
+  "feature_key": "auth-entry-clarity",
+  "status": "done",
+  "resolution": "completed",
+  "current_goal": "Очистить recovery artifacts на callback success и закрыть regression gate по фиче.",
+  "next_gate": "closed",
+  "blockers": [],
+  "artifact_paths": {
+    "task_file": "tasks/auth-entry-clarity/TEAMCAL-63.recovery-callback-reset-and-regression-gate.md",
+    "feature_dossier": "tasks/auth-entry-clarity/auth-entry-clarity.feature.md",
+    "testing_artifact": "tasks/auth-entry-clarity/TEAMCAL-63.recovery-callback-reset-and-regression-gate.testing.md",
+    "retro_artifact": "tasks/auth-entry-clarity/TEAMCAL-63.recovery-callback-reset-and-regression-gate.retro.md"
+  },
+  "active_owner": "",
+  "reserved_file_scope": [
+    "implementation/src/infrastructure/auth/auth-options.ts",
+    "implementation/app/api/auth/route.test.ts",
+    "implementation/app/_components/shell-ui.test.tsx",
+    "implementation/app/api/me/*",
+    "implementation/app/api/teams/*"
+  ],
+  "last_updated_at": "2026-04-10 19:05"
+}

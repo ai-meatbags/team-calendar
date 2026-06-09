@@ -1,0 +1,24 @@
+{
+  "feature_key": "embedded-postgres-runtime",
+  "stage": "finish",
+  "feature_owner": "Codex",
+  "feature_anchor_issue": {
+    "id": "TEAMCAL-48",
+    "identifier": "TEAMCAL-48",
+    "url": "https://linear.app/meatbags/issue/TEAMCAL-48/pg-only-data-layer-embedded-postgres-po-umolchaniyu"
+  },
+  "required_task_keys": [
+    "TEAMCAL-49",
+    "TEAMCAL-50",
+    "TEAMCAL-51",
+    "TEAMCAL-52"
+  ],
+  "child_task_keys": [
+    "TEAMCAL-49",
+    "TEAMCAL-50",
+    "TEAMCAL-51",
+    "TEAMCAL-52"
+  ],
+  "integration_task_key": "TEAMCAL-52",
+  "last_updated_at": "2026-03-21 01:04"
+}

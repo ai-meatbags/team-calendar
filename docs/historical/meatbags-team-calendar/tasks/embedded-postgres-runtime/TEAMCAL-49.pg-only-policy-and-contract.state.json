@@ -1,0 +1,22 @@
+{
+  "task_key": "TEAMCAL-49",
+  "feature_key": "embedded-postgres-runtime",
+  "status": "done",
+  "resolution": "completed",
+  "current_goal": "Pg-only contract зафиксирован в policy и historical specs.",
+  "next_gate": "closed",
+  "blockers": [],
+  "artifact_paths": {
+    "task_file": "tasks/embedded-postgres-runtime/TEAMCAL-49.pg-only-policy-and-contract.md",
+    "feature_dossier": "tasks/embedded-postgres-runtime/embedded-postgres-runtime.feature.md",
+    "testing_artifact": "tasks/embedded-postgres-runtime/TEAMCAL-49.pg-only-policy-and-contract.testing.md",
+    "retro_artifact": "tasks/embedded-postgres-runtime/TEAMCAL-49.pg-only-policy-and-contract.retro.md"
+  },
+  "active_owner": "",
+  "reserved_file_scope": [
+    "tasks/embedded-postgres-runtime/*",
+    "tasks/_policies/project-patterns.md",
+    "tasks/nextjs-drizzle-migration/*"
+  ],
+  "last_updated_at": "2026-03-21 01:04"
+}

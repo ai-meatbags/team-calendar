@@ -1,0 +1,29 @@
+{
+  "task_key": "TEAMCAL-60",
+  "feature_key": "auth-entry-clarity",
+  "status": "done",
+  "resolution": "completed",
+  "current_goal": "Ввести typed Google auth failures, account recovery state и current-user recovery orchestration.",
+  "next_gate": "closed",
+  "blockers": [],
+  "artifact_paths": {
+    "task_file": "tasks/auth-entry-clarity/TEAMCAL-60.google-auth-failure-taxonomy-and-current-user-recovery.md",
+    "feature_dossier": "tasks/auth-entry-clarity/auth-entry-clarity.feature.md",
+    "testing_artifact": "tasks/auth-entry-clarity/TEAMCAL-60.google-auth-failure-taxonomy-and-current-user-recovery.testing.md",
+    "retro_artifact": "tasks/auth-entry-clarity/TEAMCAL-60.google-auth-failure-taxonomy-and-current-user-recovery.retro.md"
+  },
+  "active_owner": "",
+  "reserved_file_scope": [
+    "implementation/src/infrastructure/google/freebusy.ts",
+    "implementation/src/infrastructure/google/calendar-list.ts",
+    "implementation/src/application/errors.ts",
+    "implementation/src/application/usecases/get-current-user.ts",
+    "implementation/app/api/me/*",
+    "implementation/app/api/me/settings/*",
+    "implementation/app/api/me/calendar/*",
+    "implementation/src/infrastructure/db/schema.ts",
+    "implementation/src/infrastructure/db/schema-pg/index.ts",
+    "implementation/drizzle/*"
+  ],
+  "last_updated_at": "2026-04-11 13:49"
+}

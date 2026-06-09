@@ -1,0 +1,20 @@
+{
+  "task_key": "TEAMCAL-35",
+  "feature_key": "team-events-webhook",
+  "status": "done",
+  "resolution": "superseded",
+  "current_goal": "Закрыть устаревшую regression задачу после пересборки feature gate.",
+  "next_gate": "",
+  "blockers": [],
+  "artifact_paths": {
+    "task_file": "tasks/team-events-webhook/TEAMCAL-35.integration-regression-rollout.md",
+    "feature_dossier": "tasks/team-events-webhook/team-events-webhook.feature.md",
+    "testing_artifact": "",
+    "retro_artifact": "tasks/team-events-webhook/TEAMCAL-35.integration-regression-rollout.retro.md"
+  },
+  "active_owner": "Codex",
+  "reserved_file_scope": [
+    "tasks/team-events-webhook/*"
+  ],
+  "last_updated_at": "2026-04-10 13:20"
+}

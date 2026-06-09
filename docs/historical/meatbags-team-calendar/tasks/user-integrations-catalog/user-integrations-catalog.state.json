@@ -1,0 +1,26 @@
+{
+  "feature_key": "user-integrations-catalog",
+  "stage": "tasks",
+  "feature_owner": "Codex",
+  "feature_anchor_issue": {
+    "id": "TEAMCAL-65",
+    "identifier": "TEAMCAL-65",
+    "url": "https://linear.app/meatbags/issue/TEAMCAL-65/feature-anchor-polzovatelskie-integracii-i-podklyuchenie-komand"
+  },
+  "required_task_keys": [
+    "TEAMCAL-66",
+    "TEAMCAL-67",
+    "TEAMCAL-68",
+    "TEAMCAL-69",
+    "TEAMCAL-70"
+  ],
+  "child_task_keys": [
+    "TEAMCAL-66",
+    "TEAMCAL-67",
+    "TEAMCAL-68",
+    "TEAMCAL-69",
+    "TEAMCAL-70"
+  ],
+  "integration_task_key": "TEAMCAL-69",
+  "last_updated_at": "2026-04-10 19:20"
+}

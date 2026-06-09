@@ -1,0 +1,22 @@
+{
+  "task_key": "TEAMCAL-71",
+  "feature_key": "team-events-webhook",
+  "status": "done",
+  "resolution": "completed",
+  "current_goal": "Завершено: текущий team-level webhook settings block приведён к понятному settings UX без перехода к personal integrations model.",
+  "next_gate": "none",
+  "blockers": [],
+  "artifact_paths": {
+    "task_file": "tasks/team-events-webhook/TEAMCAL-71.team-webhook-settings-ui-cleanup.md",
+    "feature_dossier": "tasks/team-events-webhook/team-events-webhook.feature.md",
+    "testing_artifact": "tasks/team-events-webhook/TEAMCAL-71.team-webhook-settings-ui-cleanup.testing.md",
+    "retro_artifact": "tasks/team-events-webhook/TEAMCAL-71.team-webhook-settings-ui-cleanup.retro.md"
+  },
+  "active_owner": "Codex",
+  "reserved_file_scope": [
+    "implementation/app/_components/team-page/*",
+    "implementation/components/ui/*",
+    "tasks/team-events-webhook/*"
+  ],
+  "last_updated_at": "2026-04-11 20:08"
+}

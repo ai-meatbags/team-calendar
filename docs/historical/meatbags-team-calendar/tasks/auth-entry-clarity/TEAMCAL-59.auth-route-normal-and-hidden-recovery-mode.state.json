@@ -1,0 +1,24 @@
+{
+  "task_key": "TEAMCAL-59",
+  "feature_key": "auth-entry-clarity",
+  "status": "done",
+  "resolution": "completed",
+  "current_goal": "Убрать global forced-consent и ввести hidden recovery mode на том же auth entry.",
+  "next_gate": "closed",
+  "blockers": [],
+  "artifact_paths": {
+    "task_file": "tasks/auth-entry-clarity/TEAMCAL-59.auth-route-normal-and-hidden-recovery-mode.md",
+    "feature_dossier": "tasks/auth-entry-clarity/auth-entry-clarity.feature.md",
+    "testing_artifact": "tasks/auth-entry-clarity/TEAMCAL-59.auth-route-normal-and-hidden-recovery-mode.testing.md",
+    "retro_artifact": "tasks/auth-entry-clarity/TEAMCAL-59.auth-route-normal-and-hidden-recovery-mode.retro.md"
+  },
+  "active_owner": "",
+  "reserved_file_scope": [
+    "implementation/src/infrastructure/auth/auth-options.ts",
+    "implementation/app/api/auth/google/handler.ts",
+    "implementation/app/api/auth/google/route.ts",
+    "implementation/app/api/auth/route.test.ts",
+    "implementation/app/auth/google/route.ts"
+  ],
+  "last_updated_at": "2026-04-10 18:47"
+}

@@ -1,0 +1,26 @@
+{
+  "task_key": "TEAMCAL-77",
+  "feature_key": "slot-rules-settings",
+  "status": "done",
+  "resolution": "completed",
+  "current_goal": "Перевести availability runtime и public summary на канонический aggregate contract без client-side fallback",
+  "next_gate": "",
+  "blockers": [],
+  "artifact_paths": {
+    "task_file": "tasks/slot-rules-settings/TEAMCAL-77.availability-runtime-cutover-and-dynamic-public-summary.md",
+    "feature_dossier": "tasks/slot-rules-settings/slot-rules-settings.feature.md",
+    "testing_artifact": "",
+    "retro_artifact": ""
+  },
+  "active_owner": "Codex",
+  "reserved_file_scope": [
+    "implementation/app/api/teams/[shareId]/availability/get-handler.ts",
+    "implementation/app/api/teams/availability.route.test.ts",
+    "implementation/app/_components/team-page/team-page-hooks.ts",
+    "implementation/app/_components/team-page/team-page-client.tsx",
+    "implementation/app/_components/team-page/team-page-slots-section.tsx",
+    "implementation/app/_components/team-page/team-page.test.tsx",
+    "implementation/app/_components/team-page/team-page-acceptance.test.ts"
+  ],
+  "last_updated_at": "2026-04-11 17:05"
+}
