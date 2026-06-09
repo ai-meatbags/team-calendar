@@ -1,5 +1,27 @@
 # Team Calendar
 
+## Статус проекта
+
+На 2026-06-09 проект не развивается как активный продукт.
+
+Причина: свежий ресеч показал высокий риск каннибализации со стороны Google Workspace и Google Calendar. Базовые сценарии командной записи, подбора времени, страниц бронирования и доступа ИИ-агентов к календарю уже закрываются или быстро закрываются Google.
+
+Основные риски:
+
+- Google Calendar Appointment Schedule уже дает страницу бронирования, окна доступности, буферы, лимиты броней, формы и Google Meet: [`docs/research/2026-06-09-google-workspace-risk.md`](docs/research/2026-06-09-google-workspace-risk.md), [Google Calendar appointment schedules](https://support.google.com/calendar/answer/10729749).
+- Google Calendar умеет проверять доступность дополнительных участников и календарей для командной записи: [Google Calendar co-host availability](https://support.google.com/calendar/answer/16287054).
+- Gemini в Gmail уже помогает подбирать время встречи по письму и календарю: [Help me schedule with Gemini](https://support.google.com/calendar/answer/16865189).
+- Google Calendar MCP-сервер в предварительном режиме для разработчиков уже содержит инструменты `suggest_time` и `create_event`: [Configure Calendar MCP server](https://developers.google.com/workspace/calendar/api/guides/configure-mcp-server).
+- Google Workspace Studio развивает автоматизации внутри Workspace: [Google Workspace Studio](https://workspace.google.com/studio/).
+- Даже сегмент без Google Workspace частично закрывается через personal booking pages, Google Workspace Individual и Google One Premium: [`docs/research/2026-06-09-google-workspace-risk.md`](docs/research/2026-06-09-google-workspace-risk.md).
+
+Сохраненный ресеч:
+
+- [`docs/research/2026-06-09-team-calendar-pivot-research.md`](docs/research/2026-06-09-team-calendar-pivot-research.md) — варианты пивота и пользовательская ценность.
+- [`docs/research/2026-06-09-google-workspace-risk.md`](docs/research/2026-06-09-google-workspace-risk.md) — оценка риска со стороны Google Workspace и Google Calendar.
+
+Если проект когда-нибудь возобновлять, самый защищенный путь находится вокруг сохраненной заявки на встречу как бизнес-события: идемпотентность, подписанные вебхуки, журнал доставки, повторная доставка, n8n/Telegram/CRM и самостоятельный запуск.
+
 ## Stack
 - Next.js App Router + Auth.js
 - Drizzle ORM on a single Postgres schema
